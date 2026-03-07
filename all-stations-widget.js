@@ -65,6 +65,13 @@ const STATIONS = [
     url: "http://ec2-3-22-240-207.us-east-2.compute.amazonaws.com/guiasaldos/main/donde/134",
     key: "Viru Viru",
   },
+  {
+    name: "Gasco",
+    type: "ec2",
+    company: "Biopetrol",
+    url: "http://ec2-3-22-240-207.us-east-2.compute.amazonaws.com/guiasaldos/main/donde/134",
+    key: "Gasco",
+  },
 ];
 
 /***********************
