@@ -204,6 +204,23 @@ const colorRed = new Color("#FF3B30");
 const colorGreen = new Color("#34C759");
 
 /***********************
+ * FONTS – SF Rounded + Mono
+ ***********************/
+function roundedFont(size, weight) {
+  const weights = {
+    bold: "Bold",
+    semibold: "Semibold",
+    medium: "Medium",
+    regular: "Regular",
+  };
+  return new Font(".SFUIText-" + (weights[weight] || "Regular"), size);
+}
+
+function monoFont(size) {
+  return new Font("Menlo-Bold", size);
+}
+
+/***********************
  * WIDGET LARGE
  ***********************/
 const w = new ListWidget();
@@ -226,11 +243,11 @@ fuelIcon.font = Font.systemFont(18);
 headerRow.addSpacer(6);
 
 const header = headerRow.addText("Combustible");
-header.font = Font.boldRoundedSystemFont(20);
+header.font = Font.boldSystemFont(20);
 header.textColor = textPrimary;
 
 const subtitle = headerStack.addText("Gasolina Especial");
-subtitle.font = Font.roundedSystemFont(11);
+subtitle.font = Font.systemFont(11);
 subtitle.textColor = textSecondary;
 
 w.addSpacer(8);
@@ -258,7 +275,7 @@ for (let i = 0; i < results.length; i++) {
 
   // Nombre estación
   const nameText = row.addText(r.name);
-  nameText.font = Font.mediumRoundedSystemFont(13);
+  nameText.font = Font.mediumSystemFont(13);
   nameText.textColor = textPrimary;
   nameText.lineLimit = 1;
 
@@ -269,7 +286,7 @@ for (let i = 0; i < results.length; i++) {
     ? `${r.litros.toLocaleString("es-BO")} Lts`
     : "Sin dato";
   const litrosText = row.addText(litrosStr);
-  litrosText.font = Font.semiboldMonospacedSystemFont(13);
+  litrosText.font = monoFont(12);
   litrosText.textColor = r.litros > 0 ? textPrimary : colorRed;
   litrosText.lineLimit = 1;
 
@@ -298,7 +315,7 @@ const hh = String(now.getHours()).padStart(2, "0");
 const mm = String(now.getMinutes()).padStart(2, "0");
 
 const meta = metaStack.addText(`Consulta ${hh}:${mm}`);
-meta.font = Font.roundedSystemFont(10);
+meta.font = Font.systemFont(10);
 meta.textColor = textSecondary;
 
 metaStack.addSpacer();
@@ -307,7 +324,7 @@ const countAvail = results.filter((r) => r.litros > 0).length;
 const avail = metaStack.addText(
   `${countAvail}/${results.length} disponibles`
 );
-avail.font = Font.roundedSystemFont(10);
+avail.font = Font.systemFont(10);
 avail.textColor = countAvail === results.length ? colorGreen : textSecondary;
 
 /***********************
