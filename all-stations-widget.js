@@ -76,10 +76,11 @@ const STATIONS = [
     name: "Rivero",
     type: "gsheets",
     company: "Rivero",
-    sheetBase:
-      "https://docs.google.com/spreadsheets/d/e/" +
+    url:
+      "https://docs.google.com/spreadsheets/u/1/d/e/" +
       "2CAIWO3els60V5S1vVAh0cccQxdcZ1MYZhD9A1pQ-ojCNPoNh-" +
-      "vJjHhJaUalVsDLQivYf_Z23Un8mEaePxSg",
+      "vJjHhJaUalVsDLQivYf_Z23Un8mEaePxSg" +
+      "/gviz/chartiframe?oid=970629425&resourcekey",
     product: "ESPECIAL",
   },
 ];
@@ -166,49 +167,52 @@ function parseGasGroup(json, product) {
   return Math.round(total);
 }
 
-function parseGSheetsCSV(text, product) {
-  if (!text) return 0;
+function parseChartIframe(html, product) {
+  if (!html) return 0;
   const upper = product.toUpperCase();
-  const lines = text.split("\n");
-  let best = 0;
-  for (const line of lines) {
-    if (!line.toUpperCase().includes(upper)) continue;
-    const nums = line.match(/[\d]+(?:[.,]\d+)*/g);
-    if (nums) {
-      for (const n of nums) {
-        const val = normalizeLiters(n);
-        if (val > best) best = val;
-      }
-    }
-  }
-  return best;
-}
 
-function parseGSheetsJSON(text, product) {
-  if (!text) return 0;
-  // gviz/tq?tqx=out:json wraps JSON in: google.visualization.Query.setResponse({...});
-  const jsonMatch = text.match(/setResponse\(([\s\S]+)\);?\s*$/);
-  if (!jsonMatch) return 0;
-  try {
-    const data = JSON.parse(jsonMatch[1]);
-    const rows = data?.table?.rows;
-    if (!rows) return 0;
-    const upper = product.toUpperCase();
-    let best = 0;
-    for (const row of rows) {
-      const cells = row.c || [];
-      const hasProduct = cells.some(
-        (c) => typeof c?.v === "string" && c.v.toUpperCase().includes(upper)
-      );
-      if (!hasProduct) continue;
-      for (const c of cells) {
-        if (typeof c?.v === "number" && c.v > best) best = Math.round(c.v);
+  // Strategy 1: find setResponse({...}) with table data
+  const jsonMatch = html.match(/setResponse\(([\s\S]+?)\);/);
+  if (jsonMatch) {
+    try {
+      const data = JSON.parse(jsonMatch[1]);
+      const rows = data?.table?.rows;
+      if (rows) {
+        for (const row of rows) {
+          const cells = row.c || [];
+          const hasProduct = cells.some(
+            (c) => typeof c?.v === "string" && c.v.toUpperCase().includes(upper)
+          );
+          if (!hasProduct) continue;
+          for (const c of cells) {
+            if (typeof c?.v === "number" && c.v > 0) return Math.round(c.v);
+          }
+        }
       }
-    }
-    return best;
-  } catch (_) {
-    return 0;
+    } catch (_) {}
   }
+
+  // Strategy 2: find data table arrays like ["ESPECIAL",55000]
+  const re = new RegExp(
+    `["']([^"']*${upper}[^"']*)["'][\\s,]*[,\\]]\\s*(\\d[\\d.,]*)`,
+    "i"
+  );
+  const m = html.match(re);
+  if (m) return normalizeLiters(m[2]);
+
+  // Strategy 3: brute force - search product name nearby a number
+  const clean = html.replace(/<[^>]*>/g, " ").replace(/\s+/g, " ");
+  const re2 = new RegExp(
+    `${upper}[\\s\\S]{0,80}?(\\d{1,3}(?:[.,]\\d{3})*(?:\\.\\d+)?)`,
+    "i"
+  );
+  const m2 = clean.match(re2);
+  if (m2) {
+    const val = normalizeLiters(m2[1]);
+    if (val >= 100) return val;
+  }
+
+  return 0;
 }
 
 /***********************
@@ -245,18 +249,8 @@ async function fetchStation(s) {
     return parseGasGroup(json, s.product);
   }
   if (s.type === "gsheets") {
-    // Try pub CSV export first, then gviz JSON query as fallback
-    const base = s.sheetBase;
-    const csv = await getHTML(base + "/pub?gid=0&single=true&output=csv", false);
-    let litros = parseGSheetsCSV(csv, s.product);
-    if (litros > 0) return litros;
-    // Fallback: gviz JSON query
-    const json = await getHTML(base + "/gviz/tq?tqx=out:json", false);
-    litros = parseGSheetsJSON(json, s.product);
-    if (litros > 0) return litros;
-    // Last resort: gviz CSV query
-    const csv2 = await getHTML(base + "/gviz/tq?tqx=out:csv", false);
-    return parseGSheetsCSV(csv2, s.product);
+    const html = await getHTML(s.url, false);
+    return parseChartIframe(html, s.product);
   }
   return 0;
 }

@@ -2,28 +2,27 @@
  * CONFIG
  ***********************/
 const STATION_NAME = "Rivero";
-const SHEET_BASE =
-  "https://docs.google.com/spreadsheets/d/e/" +
+const CHART_URL =
+  "https://docs.google.com/spreadsheets/u/1/d/e/" +
   "2CAIWO3els60V5S1vVAh0cccQxdcZ1MYZhD9A1pQ-ojCNPoNh-" +
-  "vJjHhJaUalVsDLQivYf_Z23Un8mEaePxSg";
+  "vJjHhJaUalVsDLQivYf_Z23Un8mEaePxSg" +
+  "/gviz/chartiframe?oid=970629425&resourcekey";
 const PRODUCT = "ESPECIAL";
 
 /***********************
  * FETCH
  ***********************/
-async function fetchText(url) {
-  const r = new Request(url);
-  r.timeoutInterval = 15;
-  r.headers = {
-    "User-Agent": "Mozilla/5.0 (iPhone; CPU iPhone OS like Mac OS X)",
-    Accept: "text/csv,text/plain,*/*",
-  };
-  try {
-    return await r.loadString();
-  } catch (_) {
-    return "";
-  }
-}
+const req = new Request(CHART_URL);
+req.timeoutInterval = 15;
+req.headers = {
+  "User-Agent": "Mozilla/5.0 (iPhone; CPU iPhone OS like Mac OS X)",
+  Accept: "text/html,*/*",
+};
+
+let html = "";
+try {
+  html = await req.loadString();
+} catch (_) {}
 
 /***********************
  * PARSEO
@@ -34,71 +33,55 @@ function normalizeLiters(raw) {
   return digits ? Number(digits) : 0;
 }
 
-function parseCSV(text, product) {
-  if (!text) return 0;
+function parseChartIframe(html, product) {
+  if (!html) return 0;
   const upper = product.toUpperCase();
-  const lines = text.split("\n");
-  let best = 0;
-  for (const line of lines) {
-    if (!line.toUpperCase().includes(upper)) continue;
-    const nums = line.match(/[\d]+(?:[.,]\d+)*/g);
-    if (nums) {
-      for (const n of nums) {
-        const val = normalizeLiters(n);
-        if (val > best) best = val;
+
+  // Strategy 1: find setResponse({...}) with table data
+  const jsonMatch = html.match(/setResponse\(([\s\S]+?)\);/);
+  if (jsonMatch) {
+    try {
+      const data = JSON.parse(jsonMatch[1]);
+      const rows = data?.table?.rows;
+      if (rows) {
+        for (const row of rows) {
+          const cells = row.c || [];
+          const hasProduct = cells.some(
+            (c) => typeof c?.v === "string" && c.v.toUpperCase().includes(upper)
+          );
+          if (!hasProduct) continue;
+          for (const c of cells) {
+            if (typeof c?.v === "number" && c.v > 0) return Math.round(c.v);
+          }
+        }
       }
-    }
+    } catch (_) {}
   }
-  return best;
-}
 
-function parseJSON(text, product) {
-  if (!text) return 0;
-  const jsonMatch = text.match(/setResponse\(([\s\S]+)\);?\s*$/);
-  if (!jsonMatch) return 0;
-  try {
-    const data = JSON.parse(jsonMatch[1]);
-    const rows = data?.table?.rows;
-    if (!rows) return 0;
-    const upper = product.toUpperCase();
-    let best = 0;
-    for (const row of rows) {
-      const cells = row.c || [];
-      const hasProduct = cells.some(
-        (c) => typeof c?.v === "string" && c.v.toUpperCase().includes(upper)
-      );
-      if (!hasProduct) continue;
-      for (const c of cells) {
-        if (typeof c?.v === "number" && c.v > best) best = Math.round(c.v);
-      }
-    }
-    return best;
-  } catch (_) {
-    return 0;
+  // Strategy 2: find data arrays like ["ESPECIAL",55000]
+  const re = new RegExp(
+    `["']([^"']*${upper}[^"']*)["'][\\s,]*[,\\]]\\s*(\\d[\\d.,]*)`,
+    "i"
+  );
+  const m = html.match(re);
+  if (m) return normalizeLiters(m[2]);
+
+  // Strategy 3: brute force - product name near a number
+  const clean = html.replace(/<[^>]*>/g, " ").replace(/\s+/g, " ");
+  const re2 = new RegExp(
+    `${upper}[\\s\\S]{0,80}?(\\d{1,3}(?:[.,]\\d{3})*(?:\\.\\d+)?)`,
+    "i"
+  );
+  const m2 = clean.match(re2);
+  if (m2) {
+    const val = normalizeLiters(m2[1]);
+    if (val >= 100) return val;
   }
+
+  return 0;
 }
 
-/***********************
- * INTENTAR MULTIPLES ENDPOINTS
- ***********************/
-let litros = 0;
-
-// 1) pub CSV export
-const csv1 = await fetchText(SHEET_BASE + "/pub?gid=0&single=true&output=csv");
-litros = parseCSV(csv1, PRODUCT);
-
-// 2) gviz JSON query
-if (litros === 0) {
-  const json = await fetchText(SHEET_BASE + "/gviz/tq?tqx=out:json");
-  litros = parseJSON(json, PRODUCT);
-}
-
-// 3) gviz CSV query
-if (litros === 0) {
-  const csv2 = await fetchText(SHEET_BASE + "/gviz/tq?tqx=out:csv");
-  litros = parseCSV(csv2, PRODUCT);
-}
-
+const litros = parseChartIframe(html, PRODUCT);
 const now = new Date();
 
 /***********************
@@ -113,7 +96,6 @@ w.backgroundColor = Color.dynamic(
 
 w.setPadding(8, 16, 16, 16);
 
-// ── TITULO
 const title = w.addText(STATION_NAME);
 title.font = Font.semiboldSystemFont(22);
 title.textColor = Color.dynamic(
@@ -123,7 +105,6 @@ title.textColor = Color.dynamic(
 
 w.addSpacer(4);
 
-// ── VOLUMEN
 const value = w.addText(
   litros > 0
     ? `${litros.toLocaleString("es-BO")} Lts`
@@ -137,7 +118,6 @@ value.textColor =
 
 w.addSpacer(28);
 
-// ── METADATA (hora 24 h)
 const meta = w.addText(
   `Consulta ${now.toLocaleTimeString("es-BO", {
     hour: "2-digit",
