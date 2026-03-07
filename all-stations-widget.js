@@ -65,6 +65,24 @@ const STATIONS = [
     url: "http://ec2-3-22-240-207.us-east-2.compute.amazonaws.com/guiasaldos/main/donde/134",
     key: "Viru Viru",
   },
+  {
+    name: "Gasco",
+    type: "ec2",
+    company: "Biopetrol",
+    url: "http://ec2-3-22-240-207.us-east-2.compute.amazonaws.com/guiasaldos/main/donde/134",
+    key: "Gasco",
+  },
+  {
+    name: "Rivero",
+    type: "gsheets",
+    company: "Rivero",
+    url:
+      "https://docs.google.com/spreadsheets/u/0/d/e/" +
+      "2CAIWO3els60V5S1vVAh0cccQxdcZ1MYZhD9A1pQ-ojCNPoNh-" +
+      "vJjHhJaUalVsDLQivYf_Z23Un8mEaePxSg" +
+      "/gviz/chartiframe?oid=1546358769&resourcekey",
+    product: "ESPECIAL",
+  },
 ];
 
 /***********************
@@ -149,6 +167,43 @@ function parseGasGroup(json, product) {
   return Math.round(total);
 }
 
+function parseChartJson(html, product) {
+  if (!html) return 0;
+  const upper = product.toUpperCase();
+  // Google Sheets chartiframe embeds data in chartJson as hex-escaped JSON
+  // e.g. 'chartJson': '\x7b\x22dataTable\x22:...\x7d'
+  const m = html.match(/'chartJson'\s*:\s*'((?:[^'\\]|\\.)*)'/);
+  if (!m) return 0;
+  try {
+    // Unescape JS string escapes left-to-right: \\ then \xNN
+    const unescaped = m[1].replace(/\\(x([0-9a-fA-F]{2})|.)/g, (match, esc, hex) => {
+      if (hex) return String.fromCharCode(parseInt(hex, 16));
+      if (esc === '\\') return '\\';
+      if (esc === "'") return "'";
+      if (esc === 'n') return '\n';
+      return esc;
+    });
+    const chart = JSON.parse(unescaped);
+    const rows = chart?.dataTable?.rows;
+    if (rows) {
+      for (const row of rows) {
+        const cells = row.c || [];
+        const hasProduct = cells.some(
+          (c) =>
+            typeof c?.v === "string" &&
+            c.v.toUpperCase().includes(upper)
+        );
+        if (!hasProduct) continue;
+        for (const c of cells) {
+          if (typeof c?.v === "number" && c.v > 0)
+            return Math.round(c.v);
+        }
+      }
+    }
+  } catch (_) {}
+  return 0;
+}
+
 /***********************
  * FETCH ALL (paralelo)
  ***********************/
@@ -182,6 +237,10 @@ async function fetchStation(s) {
     const json = await getJSON(s.url);
     return parseGasGroup(json, s.product);
   }
+  if (s.type === "gsheets") {
+    const html = await getHTML(s.url, false);
+    return parseChartJson(html, s.product);
+  }
   return 0;
 }
 
@@ -213,18 +272,8 @@ const colorRed = new Color("#FF3B30");
 const colorGreen = new Color("#34C759");
 
 /***********************
- * FONTS – SF Rounded + Mono
+ * FONTS
  ***********************/
-function roundedFont(size, weight) {
-  const weights = {
-    bold: "Bold",
-    semibold: "Semibold",
-    medium: "Medium",
-    regular: "Regular",
-  };
-  return new Font(".SFUIText-" + (weights[weight] || "Regular"), size);
-}
-
 function monoFont(size) {
   return new Font("Menlo-Bold", size);
 }
@@ -243,19 +292,11 @@ w.setPadding(12, 14, 10, 14);
 const headerStack = w.addStack();
 headerStack.layoutVertically();
 
-const headerRow = headerStack.addStack();
-headerRow.layoutHorizontally();
-headerRow.centerAlignContent();
-
-const fuelIcon = headerRow.addText("\u26FD");
-fuelIcon.font = Font.systemFont(18);
-headerRow.addSpacer(6);
-
-const header = headerRow.addText("Combustible");
+const header = headerStack.addText("Combustible");
 header.font = Font.boldSystemFont(20);
 header.textColor = textPrimary;
 
-const subtitle = headerStack.addText("Gasolina Especial");
+const subtitle = headerStack.addText("Gasolina Especial · Santa Cruz");
 subtitle.font = Font.systemFont(11);
 subtitle.textColor = textSecondary;
 
@@ -269,7 +310,7 @@ const sepColor = Color.dynamic(
 const headerSep = w.addStack();
 headerSep.layoutHorizontally();
 const headerLine = headerSep.addText("─".repeat(50));
-headerLine.font = Font.systemFont(2);
+headerLine.font = Font.systemFont(4);
 headerLine.textColor = sepColor;
 
 w.addSpacer(12);
@@ -323,10 +364,10 @@ for (let i = 0; i < results.length; i++) {
     sepLine.layoutHorizontally();
     sepLine.addSpacer(20);
     const line = sepLine.addText("─".repeat(50));
-    line.font = Font.systemFont(1);
+    line.font = Font.systemFont(3);
     line.textColor = Color.dynamic(
-      new Color("#E5E5EA"),
-      new Color("#2C2C2E")
+      new Color("#C7C7CC"),
+      new Color("#48484A")
     );
     sepLine.addSpacer(4);
     w.addSpacer(3);
