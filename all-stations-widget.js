@@ -243,19 +243,11 @@ w.setPadding(12, 14, 10, 14);
 const headerStack = w.addStack();
 headerStack.layoutVertically();
 
-const headerRow = headerStack.addStack();
-headerRow.layoutHorizontally();
-headerRow.centerAlignContent();
-
-const fuelIcon = headerRow.addText("\u26FD");
-fuelIcon.font = Font.systemFont(18);
-headerRow.addSpacer(6);
-
-const header = headerRow.addText("Combustible");
+const header = headerStack.addText("Combustible");
 header.font = Font.boldSystemFont(20);
 header.textColor = textPrimary;
 
-const subtitle = headerStack.addText("Gasolina Especial");
+const subtitle = headerStack.addText("Gasolina Especial · Santa Cruz");
 subtitle.font = Font.systemFont(11);
 subtitle.textColor = textSecondary;
 
@@ -269,7 +261,7 @@ const sepColor = Color.dynamic(
 const headerSep = w.addStack();
 headerSep.layoutHorizontally();
 const headerLine = headerSep.addText("─".repeat(50));
-headerLine.font = Font.systemFont(2);
+headerLine.font = Font.systemFont(4);
 headerLine.textColor = sepColor;
 
 w.addSpacer(12);
@@ -323,10 +315,10 @@ for (let i = 0; i < results.length; i++) {
     sepLine.layoutHorizontally();
     sepLine.addSpacer(20);
     const line = sepLine.addText("─".repeat(50));
-    line.font = Font.systemFont(1);
+    line.font = Font.systemFont(3);
     line.textColor = Color.dynamic(
-      new Color("#E5E5EA"),
-      new Color("#2C2C2E")
+      new Color("#C7C7CC"),
+      new Color("#48484A")
     );
     sepLine.addSpacer(4);
     w.addSpacer(3);
