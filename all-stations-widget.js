@@ -363,7 +363,7 @@ for (let i = 0; i < results.length; i++) {
     ? `${r.litros.toLocaleString("es-BO")} Lts`
     : "Sin dato";
   const litrosText = row.addText(litrosStr);
-  litrosText.font = Font.mediumSystemFont(14);
+  litrosText.font = Font.mediumSystemFont(13);
   litrosText.textColor = r.litros > 0 ? textPrimary : colorRed;
   litrosText.lineLimit = 1;
 
