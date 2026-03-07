@@ -76,11 +76,10 @@ const STATIONS = [
     name: "Rivero",
     type: "gsheets",
     company: "Rivero",
-    url:
+    sheetBase:
       "https://docs.google.com/spreadsheets/d/e/" +
       "2CAIWO3els60V5S1vVAh0cccQxdcZ1MYZhD9A1pQ-ojCNPoNh-" +
-      "vJjHhJaUalVsDLQivYf_Z23Un8mEaePxSg" +
-      "/gviz/tq?tqx=out:csv",
+      "vJjHhJaUalVsDLQivYf_Z23Un8mEaePxSg",
     product: "ESPECIAL",
   },
 ];
@@ -167,25 +166,49 @@ function parseGasGroup(json, product) {
   return Math.round(total);
 }
 
-function parseGSheets(csv, product) {
-  if (!csv) return 0;
-  // Google Sheets gviz/tq?tqx=out:csv returns quoted CSV rows.
-  // We look for rows whose first column matches the product keyword
-  // and extract the numeric liter value from subsequent columns.
-  const lines = csv.split("\n");
-  let total = 0;
+function parseGSheetsCSV(text, product) {
+  if (!text) return 0;
+  const upper = product.toUpperCase();
+  const lines = text.split("\n");
+  let best = 0;
   for (const line of lines) {
-    if (!line.toUpperCase().includes(product.toUpperCase())) continue;
-    // Extract all numbers from the line (ignoring the product text)
+    if (!line.toUpperCase().includes(upper)) continue;
     const nums = line.match(/[\d]+(?:[.,]\d+)*/g);
     if (nums) {
       for (const n of nums) {
         const val = normalizeLiters(n);
-        if (val > total) total = val;
+        if (val > best) best = val;
       }
     }
   }
-  return total;
+  return best;
+}
+
+function parseGSheetsJSON(text, product) {
+  if (!text) return 0;
+  // gviz/tq?tqx=out:json wraps JSON in: google.visualization.Query.setResponse({...});
+  const jsonMatch = text.match(/setResponse\(([\s\S]+)\);?\s*$/);
+  if (!jsonMatch) return 0;
+  try {
+    const data = JSON.parse(jsonMatch[1]);
+    const rows = data?.table?.rows;
+    if (!rows) return 0;
+    const upper = product.toUpperCase();
+    let best = 0;
+    for (const row of rows) {
+      const cells = row.c || [];
+      const hasProduct = cells.some(
+        (c) => typeof c?.v === "string" && c.v.toUpperCase().includes(upper)
+      );
+      if (!hasProduct) continue;
+      for (const c of cells) {
+        if (typeof c?.v === "number" && c.v > best) best = Math.round(c.v);
+      }
+    }
+    return best;
+  } catch (_) {
+    return 0;
+  }
 }
 
 /***********************
@@ -222,8 +245,18 @@ async function fetchStation(s) {
     return parseGasGroup(json, s.product);
   }
   if (s.type === "gsheets") {
-    const csv = await getHTML(s.url, false);
-    return parseGSheets(csv, s.product);
+    // Try pub CSV export first, then gviz JSON query as fallback
+    const base = s.sheetBase;
+    const csv = await getHTML(base + "/pub?gid=0&single=true&output=csv", false);
+    let litros = parseGSheetsCSV(csv, s.product);
+    if (litros > 0) return litros;
+    // Fallback: gviz JSON query
+    const json = await getHTML(base + "/gviz/tq?tqx=out:json", false);
+    litros = parseGSheetsJSON(json, s.product);
+    if (litros > 0) return litros;
+    // Last resort: gviz CSV query
+    const csv2 = await getHTML(base + "/gviz/tq?tqx=out:csv", false);
+    return parseGSheetsCSV(csv2, s.product);
   }
   return 0;
 }

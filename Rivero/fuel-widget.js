@@ -2,27 +2,28 @@
  * CONFIG
  ***********************/
 const STATION_NAME = "Rivero";
-const GSHEETS_URL =
+const SHEET_BASE =
   "https://docs.google.com/spreadsheets/d/e/" +
   "2CAIWO3els60V5S1vVAh0cccQxdcZ1MYZhD9A1pQ-ojCNPoNh-" +
-  "vJjHhJaUalVsDLQivYf_Z23Un8mEaePxSg" +
-  "/gviz/tq?tqx=out:csv";
+  "vJjHhJaUalVsDLQivYf_Z23Un8mEaePxSg";
 const PRODUCT = "ESPECIAL";
 
 /***********************
- * FETCH CSV
+ * FETCH
  ***********************/
-const req = new Request(GSHEETS_URL);
-req.timeoutInterval = 15;
-req.headers = {
-  "User-Agent": "Mozilla/5.0 (iPhone; CPU iPhone OS like Mac OS X)",
-  Accept: "text/csv,text/plain,*/*",
-};
-
-let csv = "";
-try {
-  csv = await req.loadString();
-} catch (_) {}
+async function fetchText(url) {
+  const r = new Request(url);
+  r.timeoutInterval = 15;
+  r.headers = {
+    "User-Agent": "Mozilla/5.0 (iPhone; CPU iPhone OS like Mac OS X)",
+    Accept: "text/csv,text/plain,*/*",
+  };
+  try {
+    return await r.loadString();
+  } catch (_) {
+    return "";
+  }
+}
 
 /***********************
  * PARSEO
@@ -33,12 +34,13 @@ function normalizeLiters(raw) {
   return digits ? Number(digits) : 0;
 }
 
-function extractLiters(csv, product) {
-  if (!csv) return 0;
-  const lines = csv.split("\n");
+function parseCSV(text, product) {
+  if (!text) return 0;
+  const upper = product.toUpperCase();
+  const lines = text.split("\n");
   let best = 0;
   for (const line of lines) {
-    if (!line.toUpperCase().includes(product.toUpperCase())) continue;
+    if (!line.toUpperCase().includes(upper)) continue;
     const nums = line.match(/[\d]+(?:[.,]\d+)*/g);
     if (nums) {
       for (const n of nums) {
@@ -50,7 +52,53 @@ function extractLiters(csv, product) {
   return best;
 }
 
-const litros = extractLiters(csv, PRODUCT);
+function parseJSON(text, product) {
+  if (!text) return 0;
+  const jsonMatch = text.match(/setResponse\(([\s\S]+)\);?\s*$/);
+  if (!jsonMatch) return 0;
+  try {
+    const data = JSON.parse(jsonMatch[1]);
+    const rows = data?.table?.rows;
+    if (!rows) return 0;
+    const upper = product.toUpperCase();
+    let best = 0;
+    for (const row of rows) {
+      const cells = row.c || [];
+      const hasProduct = cells.some(
+        (c) => typeof c?.v === "string" && c.v.toUpperCase().includes(upper)
+      );
+      if (!hasProduct) continue;
+      for (const c of cells) {
+        if (typeof c?.v === "number" && c.v > best) best = Math.round(c.v);
+      }
+    }
+    return best;
+  } catch (_) {
+    return 0;
+  }
+}
+
+/***********************
+ * INTENTAR MULTIPLES ENDPOINTS
+ ***********************/
+let litros = 0;
+
+// 1) pub CSV export
+const csv1 = await fetchText(SHEET_BASE + "/pub?gid=0&single=true&output=csv");
+litros = parseCSV(csv1, PRODUCT);
+
+// 2) gviz JSON query
+if (litros === 0) {
+  const json = await fetchText(SHEET_BASE + "/gviz/tq?tqx=out:json");
+  litros = parseJSON(json, PRODUCT);
+}
+
+// 3) gviz CSV query
+if (litros === 0) {
+  const csv2 = await fetchText(SHEET_BASE + "/gviz/tq?tqx=out:csv");
+  litros = parseCSV(csv2, PRODUCT);
+}
+
 const now = new Date();
 
 /***********************
