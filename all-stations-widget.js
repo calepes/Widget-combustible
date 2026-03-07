@@ -5,6 +5,7 @@ const STATIONS = [
   {
     name: "Genex Banzer",
     type: "genex",
+    company: "Genex",
     url:
       "https://genex.com.bo/estaciones/" +
       "?3142_product_cat%5B0%5D=294" +
@@ -17,6 +18,7 @@ const STATIONS = [
   {
     name: "Vangas",
     type: "genex",
+    company: "Genex",
     url: "https://genex.com.bo/estaciones/",
     key: "VANGAS",
     fuel: "G. ESPECIAL+",
@@ -24,36 +26,42 @@ const STATIONS = [
   {
     name: "Urubó",
     type: "gasgroup",
+    company: "Gas Group",
     url: "https://gasgroup.com.bo/api/obtener-datos-temporales/CTqmwWgj",
     product: "GASOLINA ESPECIAL",
   },
   {
     name: "Equipetrol",
     type: "ec2",
+    company: "YPFB",
     url: "http://ec2-3-22-240-207.us-east-2.compute.amazonaws.com/guiasaldos/main/donde/134",
     key: "EQUIPETROL",
   },
   {
     name: "Pirai",
     type: "ec2",
+    company: "YPFB",
     url: "http://ec2-3-22-240-207.us-east-2.compute.amazonaws.com/guiasaldos/main/donde/134",
     key: "PIRAI",
   },
   {
     name: "Alemana",
     type: "ec2",
+    company: "YPFB",
     url: "http://ec2-3-22-240-207.us-east-2.compute.amazonaws.com/guiasaldos/main/donde/134",
     key: "Alemana",
   },
   {
     name: "López",
     type: "ec2",
+    company: "YPFB",
     url: "http://ec2-3-22-240-207.us-east-2.compute.amazonaws.com/guiasaldos/main/donde/134",
     key: "Lopez",
   },
   {
     name: "Viru Viru",
     type: "ec2",
+    company: "YPFB",
     url: "http://ec2-3-22-240-207.us-east-2.compute.amazonaws.com/guiasaldos/main/donde/134",
     key: "Viru Viru",
   },
@@ -180,6 +188,7 @@ async function fetchStation(s) {
 const results = await Promise.all(
   STATIONS.map(async (s) => ({
     name: s.name,
+    company: s.company,
     litros: await fetchStation(s),
   }))
 );
@@ -263,7 +272,7 @@ const headerLine = headerSep.addText("─".repeat(50));
 headerLine.font = Font.systemFont(2);
 headerLine.textColor = sepColor;
 
-w.addSpacer(6);
+w.addSpacer(12);
 
 // ── FILAS DE ESTACIONES
 for (let i = 0; i < results.length; i++) {
@@ -286,6 +295,15 @@ for (let i = 0; i < results.length; i++) {
   nameText.font = Font.mediumSystemFont(13);
   nameText.textColor = textPrimary;
   nameText.lineLimit = 1;
+  nameText.minimumScaleFactor = 0.8;
+
+  row.addSpacer(8);
+
+  // Empresa
+  const companyText = row.addText(r.company);
+  companyText.font = Font.systemFont(10);
+  companyText.textColor = textSecondary;
+  companyText.lineLimit = 1;
 
   row.addSpacer();
 
