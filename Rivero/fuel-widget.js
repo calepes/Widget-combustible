@@ -3,14 +3,29 @@
  ***********************/
 const STATION_NAME = "Rivero";
 const CHART_URL =
-  "https://docs.google.com/spreadsheets/u/1/d/e/" +
+  "https://docs.google.com/spreadsheets/u/0/d/e/" +
   "2CAIWO3els60V5S1vVAh0cccQxdcZ1MYZhD9A1pQ-ojCNPoNh-" +
   "vJjHhJaUalVsDLQivYf_Z23Un8mEaePxSg" +
-  "/gviz/chartiframe?oid=970629425&resourcekey";
+  "/gviz/chartiframe?oid=1546358769&resourcekey";
 const PRODUCT = "ESPECIAL";
 
 /***********************
- * HELPERS
+ * FETCH
+ ***********************/
+const req = new Request(CHART_URL);
+req.timeoutInterval = 15;
+req.headers = {
+  "User-Agent": "Mozilla/5.0 (iPhone; CPU iPhone OS like Mac OS X)",
+  Accept: "text/html,*/*",
+};
+
+let html = "";
+try {
+  html = await req.loadString();
+} catch (_) {}
+
+/***********************
+ * PARSEO
  ***********************/
 function normalizeLiters(raw) {
   if (!raw) return 0;
@@ -18,108 +33,38 @@ function normalizeLiters(raw) {
   return digits ? Number(digits) : 0;
 }
 
-/***********************
- * FETCH HTML
- ***********************/
-async function fetchHTML(url) {
-  const r = new Request(url);
-  r.timeoutInterval = 15;
-  r.headers = {
-    "User-Agent": "Mozilla/5.0 (iPhone; CPU iPhone OS like Mac OS X)",
-    Accept: "text/html,*/*",
-  };
-  try {
-    return await r.loadString();
-  } catch (_) {
-    return "";
-  }
-}
-
-/***********************
- * PARSE + FETCH CHART
- ***********************/
-async function fetchChartData(url, product) {
+function parseChartJson(html, product) {
+  if (!html) return 0;
   const upper = product.toUpperCase();
+  // Google Sheets chartiframe embeds data in chartJson as hex-escaped JSON
+  const m = html.match(/'chartJson'\s*:\s*'((?:[^'\\]|\\.)*)'/);
+  if (!m) return 0;
   try {
-    // Strategy 1: fetch raw HTML and look for embedded data
-    const html = await fetchHTML(url);
-    if (html) {
-      const jsonMatch = html.match(/setResponse\(([\s\S]+?)\);/);
-      if (jsonMatch) {
-        try {
-          const data = JSON.parse(jsonMatch[1]);
-          const rows = data?.table?.rows;
-          if (rows) {
-            for (const row of rows) {
-              const cells = row.c || [];
-              const hasProduct = cells.some(
-                (c) =>
-                  typeof c?.v === "string" &&
-                  c.v.toUpperCase().includes(upper)
-              );
-              if (!hasProduct) continue;
-              for (const c of cells) {
-                if (typeof c?.v === "number" && c.v > 0)
-                  return Math.round(c.v);
-              }
-            }
-          }
-        } catch (_) {}
-      }
-      const re1 = new RegExp(
-        `["']([^"']*${upper}[^"']*)["'][\\s,]*[,\\]]\\s*(\\d[\\d.,]*)`,
-        "i"
-      );
-      const m1 = html.match(re1);
-      if (m1) return normalizeLiters(m1[2]);
-      const clean = html.replace(/<[^>]*>/g, " ").replace(/\s+/g, " ");
-      const re2 = new RegExp(
-        `${upper}[\\s\\S]{0,80}?(\\d{1,3}(?:[.,]\\d{3})*(?:\\.\\d+)?)`,
-        "i"
-      );
-      const m2 = clean.match(re2);
-      if (m2) {
-        const val = normalizeLiters(m2[1]);
-        if (val >= 100) return val;
-      }
-    }
-
-    // Strategy 2: use WebView with delay for JS to render the chart
-    const wv = new WebView();
-    await wv.loadURL(url);
-    const text = await wv.evaluateJavaScript(
-      `setTimeout(() => { completion(document.body.innerText); }, 5000);`,
-      true
+    const unescaped = m[1].replace(/\\x([0-9a-fA-F]{2})/g, (_, hex) =>
+      String.fromCharCode(parseInt(hex, 16))
     );
-    if (!text) return 0;
-    const lines = text.split("\n");
-    let best = 0;
-    let found = false;
-    for (const line of lines) {
-      if (line.toUpperCase().includes(upper)) found = true;
-      if (found) {
-        const nums = line.match(/[\d]+(?:[.,]\d{3})*/g);
-        if (nums) {
-          for (const n of nums) {
-            const val = normalizeLiters(n);
-            if (val > best) best = val;
-          }
+    const chart = JSON.parse(unescaped);
+    const rows = chart?.dataTable?.rows;
+    if (rows) {
+      for (const row of rows) {
+        const cells = row.c || [];
+        const hasProduct = cells.some(
+          (c) =>
+            typeof c?.v === "string" &&
+            c.v.toUpperCase().includes(upper)
+        );
+        if (!hasProduct) continue;
+        for (const c of cells) {
+          if (typeof c?.v === "number" && c.v > 0)
+            return Math.round(c.v);
         }
-        if (best > 0) return best;
       }
     }
-    const re = new RegExp(
-      `${upper}[\\s\\S]{0,200}?(\\d{1,3}(?:[,.]\\d{3})+|\\d{4,})`,
-      "i"
-    );
-    const m = text.match(re);
-    return m ? normalizeLiters(m[1]) : 0;
-  } catch (_) {
-    return 0;
-  }
+  } catch (_) {}
+  return 0;
 }
 
-const litros = await fetchChartData(CHART_URL, PRODUCT);
+const litros = parseChartJson(html, PRODUCT);
 const now = new Date();
 
 /***********************
