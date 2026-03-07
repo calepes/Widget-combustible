@@ -416,7 +416,7 @@ if (config.runsInWidget) {
   // Menú interactivo: seleccionar estación → abrir en Waze
   const alert = new Alert();
   alert.title = "Navegar a estación";
-  alert.message = "Seleccioná una estación para abrir en Waze";
+  alert.message = "Selecciona una estación para abrir en Waze";
 
   for (const r of results) {
     const status = r.litros > 0
