@@ -14,6 +14,7 @@ const STATIONS = [
       "&3142_filtered=true",
     key: "GENEX I",
     fuel: "G. ESPECIAL+",
+    waze: "https://waze.com/ul?q=Genex%20Banzer%203er%20Anillo%20Santa%20Cruz%20Bolivia&navigate=yes",
   },
   {
     name: "Vangas",
@@ -22,6 +23,7 @@ const STATIONS = [
     url: "https://genex.com.bo/estaciones/",
     key: "VANGAS",
     fuel: "G. ESPECIAL+",
+    waze: "https://waze.com/ul?q=Vangas%20Hernando%20Sanabria%204to%20Anillo%20Santa%20Cruz%20Bolivia&navigate=yes",
   },
   {
     name: "Urubó",
@@ -29,6 +31,7 @@ const STATIONS = [
     company: "Orsa",
     url: "https://gasgroup.com.bo/api/obtener-datos-temporales/CTqmwWgj",
     product: "GASOLINA ESPECIAL",
+    waze: "https://waze.com/ul?q=Orsa%20Urubo%20Santa%20Cruz%20Bolivia&navigate=yes",
   },
   {
     name: "Equipetrol",
@@ -36,6 +39,7 @@ const STATIONS = [
     company: "Biopetrol",
     url: "http://ec2-3-22-240-207.us-east-2.compute.amazonaws.com/guiasaldos/main/donde/134",
     key: "EQUIPETROL",
+    waze: "https://waze.com/ul?q=Biopetrol%20Equipetrol%204to%20Anillo%20Santa%20Cruz%20Bolivia&navigate=yes",
   },
   {
     name: "Pirai",
@@ -43,6 +47,7 @@ const STATIONS = [
     company: "Biopetrol",
     url: "http://ec2-3-22-240-207.us-east-2.compute.amazonaws.com/guiasaldos/main/donde/134",
     key: "PIRAI",
+    waze: "https://waze.com/ul?q=Biopetrol%20Pirai%20Roca%20y%20Coronado%203er%20Anillo%20Santa%20Cruz%20Bolivia&navigate=yes",
   },
   {
     name: "Alemana",
@@ -50,6 +55,7 @@ const STATIONS = [
     company: "Biopetrol",
     url: "http://ec2-3-22-240-207.us-east-2.compute.amazonaws.com/guiasaldos/main/donde/134",
     key: "Alemana",
+    waze: "https://waze.com/ul?q=Biopetrol%20Alemana%202do%20Anillo%20Santa%20Cruz%20Bolivia&navigate=yes",
   },
   {
     name: "López",
@@ -57,6 +63,7 @@ const STATIONS = [
     company: "Biopetrol",
     url: "http://ec2-3-22-240-207.us-east-2.compute.amazonaws.com/guiasaldos/main/donde/134",
     key: "Lopez",
+    waze: "https://waze.com/ul?q=Biopetrol%20Lopez%20Banzer%207mo%20Anillo%20Santa%20Cruz%20Bolivia&navigate=yes",
   },
   {
     name: "Viru Viru",
@@ -64,6 +71,7 @@ const STATIONS = [
     company: "Biopetrol",
     url: "http://ec2-3-22-240-207.us-east-2.compute.amazonaws.com/guiasaldos/main/donde/134",
     key: "Viru Viru",
+    waze: "https://waze.com/ul?q=Biopetrol%20Viru%20Viru%20Banzer%20Km%2010%20Santa%20Cruz%20Bolivia&navigate=yes",
   },
   {
     name: "Gasco",
@@ -71,6 +79,7 @@ const STATIONS = [
     company: "Biopetrol",
     url: "http://ec2-3-22-240-207.us-east-2.compute.amazonaws.com/guiasaldos/main/donde/134",
     key: "Gasco",
+    waze: "https://waze.com/ul?q=Biopetrol%20Gasco%20Banzer%203er%20Anillo%20Santa%20Cruz%20Bolivia&navigate=yes",
   },
   {
     name: "Rivero",
@@ -82,6 +91,7 @@ const STATIONS = [
       "vJjHhJaUalVsDLQivYf_Z23Un8mEaePxSg" +
       "/gviz/chartiframe?oid=1546358769&resourcekey",
     product: "ESPECIAL",
+    waze: "https://waze.com/ul?q=Surtidor%20Rivero%20Banzer%20Km%201.5%20Santa%20Cruz%20Bolivia&navigate=yes",
   },
 ];
 
@@ -403,7 +413,27 @@ avail.textColor = countAvail === results.length ? colorGreen : textSecondary;
 if (config.runsInWidget) {
   Script.setWidget(w);
 } else {
-  await w.presentLarge();
+  // Menú interactivo: seleccionar estación → abrir en Waze
+  const alert = new Alert();
+  alert.title = "Navegar a estación";
+  alert.message = "Seleccioná una estación para abrir en Waze";
+
+  for (const r of results) {
+    const status = r.litros > 0
+      ? `✅ ${r.litros.toLocaleString("es-BO")} Lts`
+      : "❌ Sin dato";
+    alert.addAction(`${r.name} — ${status}`);
+  }
+  alert.addCancelAction("Cancelar");
+
+  const idx = await alert.presentSheet();
+  if (idx >= 0 && idx < results.length) {
+    const selected = results[idx];
+    const station = STATIONS.find((s) => s.name === selected.name);
+    if (station?.waze) {
+      Safari.open(station.waze);
+    }
+  }
 }
 
 Script.complete();
