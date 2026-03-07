@@ -343,7 +343,7 @@ for (let i = 0; i < results.length; i++) {
 
   // Nombre estación
   const nameText = row.addText(r.name);
-  nameText.font = Font.mediumSystemFont(14);
+  nameText.font = Font.mediumSystemFont(15);
   nameText.textColor = textPrimary;
   nameText.lineLimit = 1;
   nameText.minimumScaleFactor = 0.8;
