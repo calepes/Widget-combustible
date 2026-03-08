@@ -342,7 +342,11 @@
     const footerTextEl = document.getElementById('footerText');
     const refreshBtn = document.getElementById('refreshBtn');
 
-    const MAX_ITEMS = 6;
+    const MAX_ITEMS = 10;
+
+    // Centro de Santa Cruz de la Sierra (fallback cuando no hay geolocalización)
+    const DEFAULT_LAT = -17.7833;
+    const DEFAULT_LON = -63.1821;
 
     function formatNumber(n) {
       return n.toLocaleString('es-BO');
@@ -500,21 +504,17 @@
           distKm: null,
         }));
 
-        // Get distances if location available
-        if (location) {
-          const withDist = await getDistances(location.lat, location.lon, results);
-          results = withDist.map((r) => ({
-            ...r,
-            waze: stationMap[r.name] || null,
-          }));
-        }
+        // Get distances — use real location or fallback to city center
+        const refLat = location ? location.lat : DEFAULT_LAT;
+        const refLon = location ? location.lon : DEFAULT_LON;
+        const withDist = await getDistances(refLat, refLon, results);
+        results = withDist.map((r) => ({
+          ...r,
+          waze: stationMap[r.name] || null,
+        }));
 
-        // Sort: by distance if available, else by litros desc
-        if (location) {
-          results.sort((a, b) => a.distKm - b.distKm);
-        } else {
-          results.sort((a, b) => b.litros - a.litros);
-        }
+        // Sort by distance
+        results.sort((a, b) => a.distKm - b.distKm);
 
         const top = results.slice(0, MAX_ITEMS);
         const maxLitros = Math.max(...top.map((r) => r.litros), 1);
