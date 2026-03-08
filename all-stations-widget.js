@@ -436,8 +436,8 @@ if (config.runsInWidget) {
 
   for (const r of results) {
     const status = r.litros > 0
-      ? `✅ ${r.litros.toLocaleString("es-BO")} Lts`
-      : "❌ Sin dato";
+      ? `${r.litros.toLocaleString("es-BO")} L`
+      : "Sin dato";
     alert.addAction(`${r.name} — ${status}`);
   }
   alert.addCancelAction("Cancelar");
