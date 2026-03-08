@@ -1,0 +1,559 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <title>Combustible Cards</title>
+  <link rel="manifest" href="manifest.json">
+  <link rel="icon" href="../shared/icons/icon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="../shared/icons/icon-192.svg">
+  <style>
+    :root {
+      --bg: #F2F2F7;
+      --card-bg: #FFF;
+      --text-primary: #000;
+      --text-secondary: #6D6D72;
+      --text-tertiary: #AEAEB2;
+      --system-blue: #007AFF;
+      --bar-bg: #E5E5EA;
+    }
+
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg: #000;
+        --card-bg: #1C1C1E;
+        --text-primary: #FFF;
+        --text-secondary: #8E8E93;
+        --text-tertiary: #636366;
+        --system-blue: #0A84FF;
+        --bar-bg: #38383A;
+      }
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, 'SF Pro Text', system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--text-primary);
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+
+    .container {
+      max-width: 400px;
+      margin: 0 auto;
+      padding: 16px;
+      padding-top: max(16px, env(safe-area-inset-top));
+      padding-bottom: max(16px, env(safe-area-inset-bottom));
+    }
+
+    /* Header */
+    .header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 10px;
+    }
+
+    .header-left {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .header-title {
+      font-weight: 700;
+      font-size: 16px;
+      color: var(--text-primary);
+    }
+
+    .header-subtitle {
+      font-size: 11px;
+      color: var(--text-secondary);
+    }
+
+    .header-right {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      background: color-mix(in srgb, var(--system-blue) 12%, transparent);
+      border-radius: 10px;
+      padding: 3px 8px;
+      font-weight: 700;
+      font-size: 13px;
+      color: var(--system-blue);
+    }
+
+    .refresh-btn {
+      appearance: none;
+      border: none;
+      background: none;
+      cursor: pointer;
+      color: var(--system-blue);
+      padding: 4px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .refresh-btn svg {
+      width: 18px;
+      height: 18px;
+    }
+
+    .refresh-btn.spinning svg {
+      animation: spin 0.8s linear infinite;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    /* Grid */
+    .grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+
+    /* Card */
+    .card {
+      background: var(--card-bg);
+      border-radius: 12px;
+      padding: 10px;
+      cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
+      transition: opacity 0.15s;
+    }
+
+    .card:active {
+      opacity: 0.7;
+    }
+
+    .card-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 4px;
+    }
+
+    .card-name {
+      font-weight: 600;
+      font-size: 13px;
+      color: var(--text-primary);
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      flex: 1;
+      min-width: 0;
+    }
+
+    .status-chip {
+      display: inline-flex;
+      align-items: center;
+      border-radius: 4px;
+      padding: 2px 6px;
+      font-weight: 500;
+      font-size: 9px;
+      line-height: 1;
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+
+    .status-chip.available {
+      background: rgba(52, 199, 89, 0.12);
+      color: #34C759;
+    }
+
+    .status-chip.unavailable {
+      background: rgba(255, 59, 48, 0.12);
+      color: #FF3B30;
+    }
+
+    /* Litros */
+    .card-litros {
+      display: flex;
+      align-items: baseline;
+      gap: 2px;
+      margin-top: 4px;
+    }
+
+    .litros-number {
+      font-weight: 700;
+      font-size: 18px;
+      color: var(--text-primary);
+    }
+
+    .litros-number.empty {
+      color: var(--text-secondary);
+    }
+
+    .litros-unit {
+      font-size: 13px;
+      color: var(--text-secondary);
+    }
+
+    /* Stock bar */
+    .stock-row {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      margin-top: 4px;
+    }
+
+    .bar-track {
+      flex: 1;
+      height: 6px;
+      border-radius: 3px;
+      background: var(--bar-bg);
+      overflow: hidden;
+    }
+
+    .bar-fill {
+      height: 100%;
+      border-radius: 3px;
+      min-width: 0;
+      transition: width 0.3s ease;
+    }
+
+    .bar-fill.green { background: #34C759; }
+    .bar-fill.orange { background: #FF9500; }
+    .bar-fill.red { background: #FF3B30; }
+
+    .stock-pct {
+      font-size: 9px;
+      color: var(--text-secondary);
+      white-space: nowrap;
+    }
+
+    /* Card footer */
+    .card-footer {
+      display: flex;
+      align-items: center;
+      margin-top: 4px;
+      gap: 2px;
+    }
+
+    .pin-icon {
+      width: 9px;
+      height: 9px;
+      flex-shrink: 0;
+    }
+
+    .card-distance {
+      font-weight: 500;
+      font-size: 11px;
+      color: var(--system-blue);
+      margin-right: 4px;
+    }
+
+    .card-company {
+      font-size: 10px;
+      color: var(--text-tertiary);
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    /* Footer */
+    .footer {
+      display: flex;
+      align-items: center;
+      justify-content: flex-start;
+      margin-top: 10px;
+    }
+
+    .footer-text {
+      font-weight: 500;
+      font-size: 11px;
+      color: var(--text-secondary);
+    }
+
+    /* Loading */
+    .loading {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 300px;
+      color: var(--text-secondary);
+      font-size: 14px;
+    }
+
+    .loading-spinner {
+      width: 24px;
+      height: 24px;
+      border: 3px solid var(--bar-bg);
+      border-top-color: var(--system-blue);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+      margin-right: 10px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <div class="header-left">
+        <span class="header-title">Combustible</span>
+        <span class="header-subtitle">Gasolina Especial</span>
+      </div>
+      <div class="header-right">
+        <span class="pill" id="pill" style="display:none"></span>
+        <button class="refresh-btn" id="refreshBtn" title="Actualizar">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="23 4 23 10 17 10"></polyline>
+            <polyline points="1 20 1 14 7 14"></polyline>
+            <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path>
+          </svg>
+        </button>
+      </div>
+    </div>
+
+    <div id="content">
+      <div class="loading">
+        <div class="loading-spinner"></div>
+        Cargando estaciones...
+      </div>
+    </div>
+
+    <div class="footer" id="footer" style="display:none">
+      <span class="footer-text" id="footerText"></span>
+    </div>
+  </div>
+
+  <script type="module">
+    import { STATIONS } from '../shared/stations.js';
+    import { fetchAllStations, getDistances, haversineKm } from '../shared/fetchers.js';
+
+    const contentEl = document.getElementById('content');
+    const pillEl = document.getElementById('pill');
+    const footerEl = document.getElementById('footer');
+    const footerTextEl = document.getElementById('footerText');
+    const refreshBtn = document.getElementById('refreshBtn');
+
+    const MAX_ITEMS = 6;
+
+    function formatNumber(n) {
+      return n.toLocaleString('es-BO');
+    }
+
+    function getStockColorClass(pct) {
+      if (pct >= 0.5) return 'green';
+      if (pct >= 0.2) return 'orange';
+      return 'red';
+    }
+
+    function formatDistance(km) {
+      if (km < 1) return `${Math.round(km * 1000)} m`;
+      return `${km.toFixed(1)} km`;
+    }
+
+    function getUserLocation() {
+      return new Promise((resolve) => {
+        if (!navigator.geolocation) {
+          resolve(null);
+          return;
+        }
+        navigator.geolocation.getCurrentPosition(
+          (pos) => resolve({ lat: pos.coords.latitude, lon: pos.coords.longitude }),
+          () => resolve(null),
+          { timeout: 10000, maximumAge: 60000 }
+        );
+      });
+    }
+
+    function renderCards(stations, maxLitros) {
+      const grid = document.createElement('div');
+      grid.className = 'grid';
+
+      for (const r of stations) {
+        const available = r.litros > 0;
+        const pct = available ? r.litros / maxLitros : 0;
+        const pctRound = Math.round(pct * 100);
+        const colorClass = getStockColorClass(pct);
+
+        const card = document.createElement('div');
+        card.className = 'card';
+        if (r.waze) {
+          card.addEventListener('click', () => window.open(r.waze, '_blank'));
+        }
+
+        // Top row
+        const topRow = document.createElement('div');
+        topRow.className = 'card-top';
+
+        const name = document.createElement('span');
+        name.className = 'card-name';
+        name.textContent = r.name;
+
+        const chip = document.createElement('span');
+        chip.className = `status-chip ${available ? 'available' : 'unavailable'}`;
+        chip.textContent = available ? 'Disponible' : 'Sin dato';
+
+        topRow.appendChild(name);
+        topRow.appendChild(chip);
+        card.appendChild(topRow);
+
+        // Litros
+        const litrosRow = document.createElement('div');
+        litrosRow.className = 'card-litros';
+
+        const numEl = document.createElement('span');
+        numEl.className = `litros-number${available ? '' : ' empty'}`;
+        numEl.textContent = available ? formatNumber(r.litros) : '\u2014';
+        litrosRow.appendChild(numEl);
+
+        if (available) {
+          const unitEl = document.createElement('span');
+          unitEl.className = 'litros-unit';
+          unitEl.textContent = 'L';
+          litrosRow.appendChild(unitEl);
+        }
+
+        card.appendChild(litrosRow);
+
+        // Stock bar
+        const stockRow = document.createElement('div');
+        stockRow.className = 'stock-row';
+
+        const barTrack = document.createElement('div');
+        barTrack.className = 'bar-track';
+
+        if (pct > 0) {
+          const barFill = document.createElement('div');
+          barFill.className = `bar-fill ${colorClass}`;
+          barFill.style.width = `${Math.max(pct * 100, 5)}%`;
+          barTrack.appendChild(barFill);
+        }
+
+        stockRow.appendChild(barTrack);
+
+        const pctText = document.createElement('span');
+        pctText.className = 'stock-pct';
+        pctText.textContent = `${pctRound}%`;
+        stockRow.appendChild(pctText);
+
+        card.appendChild(stockRow);
+
+        // Footer
+        const footerRow = document.createElement('div');
+        footerRow.className = 'card-footer';
+
+        if (r.distKm != null) {
+          const pinSvg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+          pinSvg.setAttribute('class', 'pin-icon');
+          pinSvg.setAttribute('viewBox', '0 0 24 24');
+          pinSvg.setAttribute('fill', 'var(--system-blue)');
+          const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+          path.setAttribute('d', 'M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5a2.5 2.5 0 1 1 0-5 2.5 2.5 0 0 1 0 5z');
+          pinSvg.appendChild(path);
+          footerRow.appendChild(pinSvg);
+
+          const distEl = document.createElement('span');
+          distEl.className = 'card-distance';
+          distEl.textContent = formatDistance(r.distKm);
+          footerRow.appendChild(distEl);
+        }
+
+        const companyEl = document.createElement('span');
+        companyEl.className = 'card-company';
+        companyEl.textContent = r.company;
+        footerRow.appendChild(companyEl);
+
+        card.appendChild(footerRow);
+        grid.appendChild(card);
+      }
+
+      return grid;
+    }
+
+    async function loadData() {
+      refreshBtn.classList.add('spinning');
+
+      try {
+        // Fetch location and station data in parallel
+        const [location, stationResults] = await Promise.all([
+          getUserLocation(),
+          fetchAllStations(STATIONS),
+        ]);
+
+        // Add waze links back from STATIONS config
+        const stationMap = {};
+        for (const s of STATIONS) {
+          stationMap[s.name] = s.waze;
+        }
+
+        let results = stationResults.map((r) => ({
+          ...r,
+          waze: stationMap[r.name] || null,
+          distKm: null,
+        }));
+
+        // Get distances if location available
+        if (location) {
+          const withDist = await getDistances(location.lat, location.lon, results);
+          results = withDist.map((r) => ({
+            ...r,
+            waze: stationMap[r.name] || null,
+          }));
+        }
+
+        // Sort: by distance if available, else by litros desc
+        if (location) {
+          results.sort((a, b) => a.distKm - b.distKm);
+        } else {
+          results.sort((a, b) => b.litros - a.litros);
+        }
+
+        const top = results.slice(0, MAX_ITEMS);
+        const maxLitros = Math.max(...top.map((r) => r.litros), 1);
+
+        // Update pill
+        const countAvail = top.filter((r) => r.litros > 0).length;
+        pillEl.textContent = `${countAvail}/${top.length}`;
+        pillEl.style.display = '';
+
+        // Render grid
+        const grid = renderCards(top, maxLitros);
+        contentEl.innerHTML = '';
+        contentEl.appendChild(grid);
+
+        // Update footer
+        const now = new Date();
+        const hh = String(now.getHours()).padStart(2, '0');
+        const mm = String(now.getMinutes()).padStart(2, '0');
+        footerTextEl.textContent = `Actualizado ${hh}:${mm}`;
+        footerEl.style.display = '';
+      } catch (err) {
+        console.error('Error cargando datos:', err);
+        contentEl.innerHTML = `<div class="loading" style="color:var(--text-secondary)">Error al cargar datos. Toca actualizar.</div>`;
+      } finally {
+        refreshBtn.classList.remove('spinning');
+      }
+    }
+
+    refreshBtn.addEventListener('click', loadData);
+
+    // Initial load
+    loadData();
+
+    // Register service worker
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('sw.js').catch((err) => {
+        console.log('SW registro fallido:', err);
+      });
+    }
+  </script>
+</body>
+</html>
