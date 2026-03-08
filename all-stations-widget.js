@@ -371,13 +371,11 @@ const systemBlue = Color.dynamic(
 const colorRed = new Color("#FF3B30");
 const colorGreen = new Color("#34C759");
 
-// Color de distancia: verde (cerca) → naranja → rojo (lejos) en 0–15 km
+// Color de distancia: verde (0–7 km) → naranja (7–12 km) → rojo (12+ km)
 function distanceColor(km) {
-  const t = Math.min(km / 15, 1);
-  const r = Math.round(t < 0.5 ? 52 + t * 2 * 199 : 239 + (1 - t) * 2 * 12);
-  const g = Math.round(t < 0.5 ? 211 - t * 2 * 65 : 146 - (t - 0.5) * 2 * 78);
-  const b = Math.round(t < 0.5 ? 153 - t * 2 * 93 : 60 - (t - 0.5) * 2 * (60 - 68));
-  return new Color(`#${r.toString(16).padStart(2,"0")}${g.toString(16).padStart(2,"0")}${b.toString(16).padStart(2,"0")}`);
+  if (km <= 7) return new Color("#34C759");
+  if (km <= 12) return new Color("#FF9500");
+  return new Color("#FF3B30");
 }
 const sepColor = Color.dynamic(
   new Color("#C6C6C8"),
