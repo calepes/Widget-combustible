@@ -288,7 +288,7 @@ const cardBg = Color.dynamic(
  * WIDGET LARGE – CARDS
  * Diseño basado en Apple HIG Widgets
  ***********************/
-const MAX_ITEMS = 8;
+const MAX_ITEMS = 6;
 const COLS = 2;
 const ROWS = Math.ceil(MAX_ITEMS / COLS);
 const WIDGET_PAD = 16;
@@ -457,7 +457,7 @@ if (config.runsInWidget) {
   alert.title = "Navegar a estación";
   alert.message = "Selecciona una estación para abrir en Waze";
 
-  for (const r of top) {
+  for (const r of results) {
     const status = r.litros > 0
       ? `${r.litros.toLocaleString("es-BO")} L`
       : "— Sin dato";
@@ -466,8 +466,8 @@ if (config.runsInWidget) {
   alert.addCancelAction("Cancelar");
 
   const idx = await alert.presentSheet();
-  if (idx >= 0 && idx < top.length) {
-    const selected = top[idx];
+  if (idx >= 0 && idx < results.length) {
+    const selected = results[idx];
     const station = STATIONS.find((s) => s.name === selected.name);
     if (station?.waze) {
       Safari.open(station.waze);
