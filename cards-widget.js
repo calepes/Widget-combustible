@@ -289,7 +289,7 @@ const cardBg = Color.dynamic(
  ***********************/
 const COLS = 2;
 const ROWS = 5;
-const CARD_SPACING = 8;
+const CARD_SPACING = 6;
 const WIDGET_PAD = 12;
 
 // Calculate card size based on device screen
@@ -297,28 +297,31 @@ const screenW = Device.screenSize().width;
 const widgetW = screenW - 32; // system inset ~16 each side
 const innerW = widgetW - WIDGET_PAD * 2;
 const cardW = Math.floor((innerW - CARD_SPACING) / COLS);
-const cardH = 62;
+const cardH = 54;
 
 const w = new ListWidget();
 w.backgroundColor = Color.dynamic(
   new Color("#FFFFFF"),
   new Color("#000000")
 );
-w.setPadding(10, WIDGET_PAD, 8, WIDGET_PAD);
+w.setPadding(6, WIDGET_PAD, 6, WIDGET_PAD);
 
 // ── HEADER
 const headerStack = w.addStack();
-headerStack.layoutVertically();
+headerStack.layoutHorizontally();
+headerStack.bottomAlignContent();
 
 const header = headerStack.addText("Combustible");
-header.font = Font.boldSystemFont(18);
+header.font = Font.boldSystemFont(16);
 header.textColor = textPrimary;
 
-const subtitle = headerStack.addText("Gasolina Especial · Santa Cruz");
-subtitle.font = Font.systemFont(10);
+headerStack.addSpacer();
+
+const subtitle = headerStack.addText("Especial · Santa Cruz");
+subtitle.font = Font.systemFont(9);
 subtitle.textColor = textSecondary;
 
-w.addSpacer(8);
+w.addSpacer(6);
 
 // ── GRID DE CARDS
 for (let row = 0; row < ROWS; row++) {
@@ -338,7 +341,7 @@ for (let row = 0; row < ROWS; row++) {
       card.layoutVertically();
       card.backgroundColor = cardBg;
       card.cornerRadius = 10;
-      card.setPadding(8, 10, 8, 10);
+      card.setPadding(6, 8, 6, 8);
       card.size = new Size(cardW, cardH);
 
       // Top row: dot + name
@@ -353,7 +356,7 @@ for (let row = 0; row < ROWS; row++) {
       topRow.addSpacer(4);
 
       const nameText = topRow.addText(r.name);
-      nameText.font = Font.semiboldSystemFont(13);
+      nameText.font = Font.semiboldSystemFont(12);
       nameText.textColor = textPrimary;
       nameText.lineLimit = 1;
       nameText.minimumScaleFactor = 0.7;
@@ -371,7 +374,7 @@ for (let row = 0; row < ROWS; row++) {
         ? `${r.litros.toLocaleString("es-BO")} Lts`
         : "Sin dato";
       const litrosText = card.addText(litrosStr);
-      litrosText.font = Font.boldSystemFont(15);
+      litrosText.font = Font.boldSystemFont(14);
       litrosText.textColor = available ? textPrimary : colorRed;
       litrosText.lineLimit = 1;
       litrosText.minimumScaleFactor = 0.6;
@@ -383,7 +386,7 @@ for (let row = 0; row < ROWS; row++) {
   }
 
   if (row < ROWS - 1) {
-    w.addSpacer(4);
+    w.addSpacer(3);
   }
 }
 
