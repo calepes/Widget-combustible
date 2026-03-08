@@ -2,11 +2,43 @@
 
 Registro de cambios del Widget Combustible.
 
-## [1.5.1] - 2026-03-08
+## [2.1.0] - 2026-03-08 — Paleta Ocean Blue + Distancia dinámica
+
+### Cambiado
+- Paleta de colores: Ocean Blue (`#3B82F6` acento, `#60A5FA` barra de nivel)
+- Reemplaza cyan original (`#64D2FF`) y azul iOS (`#0A84FF`)
+- Dot disponible: `#30D158`, no disponible: `#FF453A`
+
+### Agregado
+- **Color de distancia dinámico**: el texto de km interpola entre verde → naranja → rojo según lejanía
+  - 0 km = verde `#34D399`
+  - ~7 km = naranja `#FB923C`
+  - 15+ km = rojo `#EF4444`
+  - Interpolación lineal en rango 0–15 km
+- Fuente bold para texto de distancia (era medium)
 
 ### Nota
-- Se probó paleta Purple/Indigo en esta rama pero se revirtió — colores originales iOS restaurados
-- El desarrollo de UI activo continúa en rama `claude/cardsv2-sbRss` con `cards-widget.js`
+- Se probó paleta Purple/Indigo (`#BF5AF2`) pero se descartó a favor de Ocean Blue
+
+## [2.0.0] - 2026-03-08 — Cards Widget (Apple HIG)
+
+### Agregado
+- Nuevo diseño `cards-widget.js` basado en tarjetas con fondo (`cardBg`) y corner radius 14pt
+- Barra de nivel relativo por estación (estilo Apple Health/Fitness, color cyan #64D2FF)
+- Indicador de estado verde/rojo (punto ●) en cada tarjeta
+
+### Mejorado
+- Tipografía con jerarquía HIG: nombre 13pt semibold, litros 22pt bold rounded, empresa 11pt
+- Todas las fuentes cumplen mínimo HIG de 11pt
+- Márgenes de 16pt en widget, 10pt padding interno en tarjetas, 8pt gap entre cards
+- Header simplificado: sin emoji, título 22pt bold rounded
+- Grid reducido a top 6 estaciones (3×2) para layout más espacioso
+- Menú Waze ahora muestra todas las estaciones (no solo las del widget)
+
+### Eliminado
+- Separadores horizontales (reemplazados por espaciado entre tarjetas)
+- Badge "EN VIVO" del footer (reduce ruido visual)
+- Emoji ⛽ del header
 
 ## [1.5.0] - 2026-03-08
 

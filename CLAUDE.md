@@ -7,7 +7,7 @@ Widget de Scriptable (iOS) que muestra disponibilidad de Gasolina Especial en es
 ## Key files
 
 - `all-stations-widget.js` — Widget principal con todas las estaciones (Large widget)
-- `cards-widget.js` — Widget alternativo con diseño de tarjetas en grid 2x2 **(solo en rama cardsv2)**
+- `cards-widget.js` — Widget alternativo con diseño de tarjetas en grid 2x2
 - `fuel-widget.js` — Widget original (solo Genex Banzer, tamaño pequeño)
 - `loader-combustible.js` — Loader que descarga y ejecuta el widget desde GitHub
 - `loader-test.js` — Loader de pruebas
@@ -82,21 +82,28 @@ Toda decisión de diseño debe seguir las [Apple Human Interface Guidelines para
 ## Branch context
 
 ### Ramas activas
-- **`claude/review-fuel-widget-sbRss`** (esta rama) — Widget de lista (`all-stations-widget.js`). Colores originales iOS (`#34C759` verde, `#FF3B30` rojo, `#0A84FF` azul). Sin `cards-widget.js`. Sin distancias GPS.
 - **`claude/cardsv2-sbRss`** — Rama principal de desarrollo del cards widget. Contiene:
   - `cards-widget.js` con diseño de tarjetas grid 2x2 (Apple HIG)
-  - Paleta Ocean Blue (`#3B82F6` acento, `#60A5FA` barra)
-  - Color de distancia dinámico (verde→naranja→rojo según km, rango 0–15 km)
+  - Paleta **Ocean Blue** (`#3B82F6` acento, `#60A5FA` barra)
+  - Color de distancia dinámico (verde→naranja→rojo según km)
   - Distancias reales por ruta via OSRM API
   - Ordenamiento por cercanía con GPS del usuario
   - `loader-test.js` apunta a esta rama
+- **`claude/review-fuel-widget-sbRss`** — Widget de lista (`all-stations-widget.js`). Colores originales iOS. Sin `cards-widget.js`.
 - **`claude/cards-sbRss`** — Versión anterior del cards widget (sin distancias, sin OSRM, paleta original)
 - **`main`** — Versión estable con `all-stations-widget.js` solamente
 
-### Historial de esta sesión (2026-03-08)
-- Se propusieron 6 paletas de colores para cards widget
-- Se aplicó Purple/Indigo a esta rama pero se revirtió (usuario pidió dejarla como estaba)
-- Se eligió **Ocean Blue** + distancia dinámica para cardsv2
+### Paleta de colores actual (cardsv2)
+- Acento/badge: `#3B82F6` (ocean blue)
+- Barra de nivel: `#60A5FA` (sky blue)
+- Badge fondo: `#3B82F6` con 12% opacidad
+- Dot disponible: `#30D158`, no disponible: `#FF453A`
+- Distancia: interpolación `#34D399` (verde, cerca) → `#FB923C` (naranja) → `#EF4444` (rojo, lejos) en rango 0–15 km
+- Fondo widget: blanco/negro (light/dark)
+- Fondo tarjetas: `#F2F2F7` / `#1C1C1E` (light/dark)
+
+### Decisiones de diseño pendientes
+- Se descartó paleta Purple/Indigo (`#BF5AF2` / `#7D7AFF`)
 
 ## Testing
 
