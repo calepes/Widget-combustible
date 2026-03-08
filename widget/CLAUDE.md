@@ -1,6 +1,6 @@
 # CLAUDE.md
 
-## Project overview
+## Resumen
 
 Repo monorepo `calepes/combustible` con dos subproyectos:
 - `widget/` — Widget de Scriptable (iOS) que muestra disponibilidad de Gasolina Especial en Santa Cruz, Bolivia
@@ -8,7 +8,15 @@ Repo monorepo `calepes/combustible` con dos subproyectos:
 
 Todo el código del widget es JavaScript ejecutado en el runtime de Scriptable.
 
-## Key files
+## Setup
+
+```bash
+git clone git@github.com:calepes/combustible.git
+```
+
+No hay dependencias. Cada `.js` es un script standalone de Scriptable.
+
+## Archivos clave
 
 ### Widgets
 - `all-stations-widget.js` — Widget principal con todas las estaciones (Large widget, diseño lista)
@@ -25,82 +33,48 @@ Cada loader descarga y ejecuta un widget desde una rama específica de GitHub. U
 | `loader-test.js` | `test` | `widget/all-stations-widget.js` | `combustible-cache-test/` | naranja | Pruebas list widget |
 | `loader-cards.js` | `cards-v2` | `widget/cards-widget.js` | `combustible-cache-cards/` | verde | Pruebas cards widget |
 
-## Tech stack
+## Stack
 
-- **Runtime**: [Scriptable](https://scriptable.app/) for iOS
-- **Language**: JavaScript (no build step, no dependencies)
-- **APIs**: Scriptable built-in APIs (`ListWidget`, `Request`, `FileManager`, `Color`, `Font`, `Device`, etc.)
-- **Data sources**: HTML scraping (Genex, Biopetrol EC2), JSON API (Gasgroup), Google Sheets chart parsing (Rivero)
+- **Runtime**: [Scriptable](https://scriptable.app/) para iOS
+- **Lenguaje**: JavaScript (sin build, sin dependencias)
+- **APIs**: Scriptable built-in (`ListWidget`, `Request`, `FileManager`, `Color`, `Font`, `Device`, etc.)
+- **Fuentes de datos**: HTML scraping (Genex, Biopetrol EC2), JSON API (Gasgroup), Google Sheets chart parsing (Rivero)
 
-## Architecture notes
+## Arquitectura
 
-- Widgets use Scriptable's `ListWidget` API with horizontal/vertical stacks for layout
-- No npm, no bundler — each `.js` file is a standalone Scriptable script
-- El patrón loader descarga el widget desde GitHub y lo cachea en iCloud. Hay tres loaders (ver tabla en Key files): producción (`main`), test (`test`), y cards (`cards-v2`), cada uno con su propio directorio de caché
-- Widget sizes are Large; layout must work across iPhone screen sizes
-- Support for both light and dark mode via `Color.dynamic()`
-- Navigation to stations via Waze deep links
+- Layout con `ListWidget` API + stacks horizontales/verticales
+- No npm, no bundler — cada `.js` es un script standalone
+- El patrón loader descarga el widget desde GitHub y lo cachea en iCloud. Hay tres loaders (ver tabla en Archivos clave): producción (`main`), test (`test`), y cards (`cards-v2`), cada uno con su propio directorio de caché
+- Tamaño Large; layout adaptable a distintos tamaños de iPhone
+- Soporte light/dark mode con `Color.dynamic()`
+- Navegación a estaciones vía Waze deep links
 
-## Code conventions
+## Convenciones
 
-- Spanish comments and UI text (español neutro)
-- Station data defined as constants at the top of widget files
-- Numbers formatted with `toLocaleString("es-BO")`
-- No external dependencies — pure Scriptable APIs only
+- Comentarios y UI en español neutro
+- Datos de estaciones como constantes al inicio de cada widget
+- Números formateados con `toLocaleString("es-BO")`
+- Sin dependencias externas — solo APIs de Scriptable
 
-## Design reference — Apple HIG Widgets
+## Design reference
 
-Toda decisión de diseño debe seguir las [Apple Human Interface Guidelines para Widgets](https://developer.apple.com/design/human-interface-guidelines/widgets/). Resumen de las reglas clave:
+Seguir [Apple HIG Widgets](https://developer.apple.com/design/human-interface-guidelines/widgets/). Referencia completa en [`/Personal/AppleHIG.md`](../../../AppleHIG.md).
 
-### Tipografía
-- Usar fuente del sistema (SF Pro) con jerarquía clara: texto grande/bold para datos principales, secundario más pequeño
-- Tamaño mínimo de fuente: 11pt
-- Alto contraste entre texto y fondo
+Reglas clave aplicadas en este proyecto:
+- Fuente sistema (SF Pro), mínimo 11pt, jerarquía bold/semibold/regular
+- Márgenes: 16pt bordes widget, 8-10pt padding interno tarjetas
+- Máximo 4 elementos por fila en grids
+- Light y Dark Mode obligatorio (`Color.dynamic()`)
+- Sin fotos de fondo, sin botón "Abrir App"
 
-### Padding y márgenes
-- Margen mínimo de **16pt** desde los bordes del widget para texto y gráficos
-- **11pt** para layouts con gráficos ajustados
-- **8pt** para botones o elementos con fondo propio
-- Padding suficiente e igual entre elementos de un grid
-
-### Layout
-- Máximo **4 elementos por fila** en grids
-- El widget debe ser adaptable a distintos tamaños de pantalla
-- Widget small = un solo tap target; medium/large soportan múltiples
-- Alinear contenido con el centro del ícono de la app
-
-### Contenido
-- Enfocarse en **una sola cosa** por widget
-- Máximo **4 piezas de información** en widget small
-- El widget debe ser: informativo, personal y contextual
-- No incluir botón "Abrir App" — el contenido mismo debe ser tappeable
-- Incluir placeholder/skeleton cuando no hay datos
-
-### Visual
-- No personalizar el fondo del widget con fotos
-- Diseñar para **Light y Dark Mode**
-- Las esquinas (corner radius) deben coincidir con el radio del widget
-- Vista previa realista para el gallery del widget
-
-### Naming
-- El nombre del widget debe coincidir con el nombre de la app
-- Si hay múltiples widgets, usar nombres claros y concisos (ej: "Maps Nearby")
-
-### Principios HIG generales
-- **Clarity**: interfaz legible, jerarquía visual clara
-- **Deference**: el contenido del usuario es protagonista
-- **Depth**: capas visuales para navegación intuitiva
-
-## Branch context
-
-### Ramas
+## Ramas
 - **`main`** — Producción. Widget de lista HIG (`all-stations-widget.js`). Título: "Combustible"
 - **`test`** — Pruebas pre-producción. Mismo widget de lista, título: "Combustible (test)"
   - Incluye distancia OSRM/Haversine y ordenamiento por cercanía
   - Colores de distancia: verde (≤7 km), naranja (≤12 km), rojo (>12 km)
 - **`cards-v2`** — Experimento de layout cards grid (`cards-widget.js`)
 
-### Paleta de colores actual (cardsv2)
+### Paleta de colores (cards-v2)
 - Acento/badge: `#3B82F6` (ocean blue)
 - Barra de nivel: `#60A5FA` (sky blue)
 - Badge fondo: `#3B82F6` con 12% opacidad
@@ -112,12 +86,12 @@ Toda decisión de diseño debe seguir las [Apple Human Interface Guidelines para
 - Fondo widget: blanco/negro (light/dark)
 - Fondo tarjetas: `#F2F2F7` / `#1C1C1E` (light/dark)
 
-### Decisiones de diseño pendientes
+### Decisiones de diseño
 - Se descartó paleta Purple/Indigo (`#BF5AF2` / `#7D7AFF`)
 
 ## Testing
 
-No automated tests. Para probar cambios en desarrollo:
+No hay tests automatizados. Para probar cambios:
 
 1. Hacer push a la rama correspondiente
 2. En Scriptable, ejecutar el loader asociado a esa rama:
@@ -127,3 +101,10 @@ No automated tests. Para probar cambios en desarrollo:
 4. Verificar layout, datos, modo claro/oscuro y navegación Waze
 
 Para producción: `loader-combustible.js` descarga de `main`.
+
+## Gotchas
+
+- Al mover archivos de carpeta, actualizar la constante `FILE` en cada loader de Scriptable con la ruta completa (ej: `widget/cards-widget.js`)
+- Los loaders en Scriptable son copias locales — no se actualizan automáticamente desde GitHub
+- Gasgroup/Orsa: umbral mínimo de 1,500 Lts para filtrar lecturas poco confiables
+- Rivero usa parsing de Google Sheets chartJson (frágil, múltiples fallbacks)
