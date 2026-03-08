@@ -281,132 +281,143 @@ const textSecondary = Color.dynamic(
   new Color("#6D6D72"),
   new Color("#8E8E93")
 );
+const textTertiary = Color.dynamic(
+  new Color("#AEAEB2"),
+  new Color("#636366")
+);
+const systemBlue = Color.dynamic(
+  new Color("#007AFF"),
+  new Color("#0A84FF")
+);
 const colorRed = new Color("#FF3B30");
 const colorGreen = new Color("#34C759");
-
-/***********************
- * FONTS
- ***********************/
-function monoFont(size) {
-  return new Font("Menlo-Bold", size);
-}
+const sepColor = Color.dynamic(
+  new Color("#C6C6C8"),
+  new Color("#38383A")
+);
 
 /***********************
  * WIDGET LARGE
  ***********************/
 const w = new ListWidget();
 w.backgroundColor = Color.dynamic(
-  new Color("#FFFFFF"),
+  new Color("#F2F2F7"),
   new Color("#000000")
 );
-w.setPadding(12, 14, 10, 14);
+w.setPadding(16, 16, 12, 16);
 
-// ── HEADER
+// ── HEADER ─────────────────────────────
 const headerStack = w.addStack();
-headerStack.layoutVertically();
+headerStack.layoutHorizontally();
+headerStack.centerAlignContent();
 
-const header = headerStack.addText("Combustible");
-header.font = Font.boldSystemFont(20);
+const titleCol = headerStack.addStack();
+titleCol.layoutVertically();
+
+const header = titleCol.addText("Combustible");
+header.font = Font.boldSystemFont(16);
 header.textColor = textPrimary;
 
-const subtitle = headerStack.addText("Gasolina Especial · Santa Cruz");
+const subtitle = titleCol.addText("Gasolina Especial · Santa Cruz");
 subtitle.font = Font.systemFont(11);
 subtitle.textColor = textSecondary;
 
-w.addSpacer(6);
+headerStack.addSpacer();
 
-// ── SEPARADOR HEADER
-const sepColor = Color.dynamic(
-  new Color("#D1D1D6"),
-  new Color("#3A3A3C")
+// Pill – estaciones con stock
+const countAvail = results.filter((r) => r.litros > 0).length;
+const pill = headerStack.addStack();
+pill.layoutHorizontally();
+pill.centerAlignContent();
+pill.backgroundColor = new Color(systemBlue.hex, 0.12);
+pill.cornerRadius = 10;
+pill.setPadding(3, 8, 3, 8);
+
+const pillText = pill.addText(`${countAvail}/${results.length}`);
+pillText.font = Font.boldSystemFont(13);
+pillText.textColor = systemBlue;
+
+w.addSpacer(10);
+
+// ── CONTENEDOR DE LISTA (fondo tarjeta) ──
+const listCard = w.addStack();
+listCard.layoutVertically();
+listCard.backgroundColor = Color.dynamic(
+  new Color("#FFFFFF"),
+  new Color("#1C1C1E")
 );
-const headerSep = w.addStack();
-headerSep.layoutHorizontally();
-const headerLine = headerSep.addText("─".repeat(200));
-headerLine.font = Font.systemFont(4);
-headerLine.textColor = sepColor;
+listCard.cornerRadius = 12;
+listCard.setPadding(4, 12, 4, 12);
 
-w.addSpacer(12);
-
-// ── FILAS DE ESTACIONES
 for (let i = 0; i < results.length; i++) {
   const r = results[i];
 
-  const row = w.addStack();
+  const row = listCard.addStack();
   row.layoutHorizontally();
   row.centerAlignContent();
-  row.setPadding(0, 4, 0, 4);
+  row.setPadding(8, 0, 8, 0);
 
   // Indicador de estado (punto)
   const dot = row.addText("●");
   dot.font = Font.systemFont(6);
   dot.textColor = r.litros > 0 ? colorGreen : colorRed;
 
-  row.addSpacer(6);
+  row.addSpacer(8);
 
   // Nombre estación
   const nameText = row.addText(r.name);
-  nameText.font = Font.mediumSystemFont(15);
+  nameText.font = Font.semiboldSystemFont(14);
   nameText.textColor = textPrimary;
   nameText.lineLimit = 1;
   nameText.minimumScaleFactor = 0.8;
 
-  row.addSpacer(8);
+  row.addSpacer(6);
 
   // Empresa
   const companyText = row.addText(r.company);
-  companyText.font = Font.systemFont(10);
-  companyText.textColor = textSecondary;
+  companyText.font = Font.systemFont(11);
+  companyText.textColor = textTertiary;
   companyText.lineLimit = 1;
 
   row.addSpacer();
 
-  // Litros (monoespaciado para alinear)
+  // Litros
   const litrosStr = r.litros > 0
-    ? `${r.litros.toLocaleString("es-BO")} Lts`
+    ? `${r.litros.toLocaleString("es-BO")} L`
     : "Sin dato";
   const litrosText = row.addText(litrosStr);
-  litrosText.font = Font.mediumSystemFont(13);
+  litrosText.font = Font.mediumSystemFont(14);
   litrosText.textColor = r.litros > 0 ? textPrimary : colorRed;
   litrosText.lineLimit = 1;
 
-  // Separador sutil entre filas
+  // Separador entre filas (1px real, no texto)
   if (i < results.length - 1) {
-    w.addSpacer(3);
-    const sepLine = w.addStack();
-    sepLine.layoutHorizontally();
-    const line = sepLine.addText("─".repeat(200));
-    line.font = Font.systemFont(3);
-    line.textColor = Color.dynamic(
-      new Color("#C7C7CC"),
-      new Color("#48484A")
-    );
-    w.addSpacer(3);
+    const sepRow = listCard.addStack();
+    sepRow.layoutHorizontally();
+    sepRow.addSpacer(22); // alinear con el texto (después del dot)
+    const line = sepRow.addStack();
+    line.backgroundColor = sepColor;
+    line.size = new Size(0, 0.5);
+    line.addSpacer();
   }
 }
 
-// Empujar al fondo
+// Empujar footer al fondo
 w.addSpacer();
 
-// ── METADATA
-const metaStack = w.addStack();
-metaStack.layoutHorizontally();
+// ── FOOTER ─────────────────────────────
+const footerStack = w.addStack();
+footerStack.layoutHorizontally();
+footerStack.centerAlignContent();
 
 const hh = String(now.getHours()).padStart(2, "0");
 const mm = String(now.getMinutes()).padStart(2, "0");
 
-const meta = metaStack.addText(`Consulta ${hh}:${mm}`);
-meta.font = Font.systemFont(10);
+const meta = footerStack.addText(`Actualizado ${hh}:${mm}`);
+meta.font = Font.mediumSystemFont(11);
 meta.textColor = textSecondary;
 
-metaStack.addSpacer();
-
-const countAvail = results.filter((r) => r.litros > 0).length;
-const avail = metaStack.addText(
-  `${countAvail}/${results.length} disponibles`
-);
-avail.font = Font.systemFont(10);
-avail.textColor = countAvail === results.length ? colorGreen : textSecondary;
+footerStack.addSpacer();
 
 /***********************
  * PRESENTACIÓN
