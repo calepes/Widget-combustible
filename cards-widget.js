@@ -285,53 +285,24 @@ const cardBg = Color.dynamic(
 );
 
 /***********************
- * WIDGET LARGE – LIST
+ * WIDGET LARGE – STATS
  ***********************/
-const MAX_ROWS = 8;
+const MAX_ITEMS = 8;
+const COLS = 2;
+const ROWS = Math.ceil(MAX_ITEMS / COLS);
 const WIDGET_PAD = 16;
-const BAR_WIDTH = 60;
-const BAR_HEIGHT = 4;
+const CARD_GAP = 10;
 
 // Top 8 stations
-const top = results.slice(0, MAX_ROWS);
-const maxLitros = Math.max(...top.map((r) => r.litros), 1);
+const top = results.slice(0, MAX_ITEMS);
 
-// Bar color – gradient from green to amber based on relative level
-const colorAmber = new Color("#FF9F0A");
+// Accent colors
+const accentBlue = new Color("#0A84FF");
+const accentCyan = new Color("#64D2FF");
 const separatorColor = Color.dynamic(
   new Color("#E5E5EA"),
   new Color("#38383A")
 );
-
-// Draw a mini progress bar as an Image
-function drawBar(ratio) {
-  const ctx = new DrawContext();
-  ctx.size = new Size(BAR_WIDTH, BAR_HEIGHT);
-  ctx.opaque = false;
-  ctx.respectScreenScale = true;
-
-  // Track
-  const trackColor = Color.dynamic(
-    new Color("#E5E5EA"),
-    new Color("#38383A")
-  );
-  ctx.setFillColor(trackColor);
-  const trackRect = new Rect(0, 0, BAR_WIDTH, BAR_HEIGHT);
-  ctx.fillRect(trackRect);
-
-  // Fill
-  if (ratio > 0) {
-    const fillW = Math.max(BAR_HEIGHT, Math.round(BAR_WIDTH * ratio));
-    let barColor;
-    if (ratio > 0.5) barColor = colorGreen;
-    else if (ratio > 0.2) barColor = colorAmber;
-    else barColor = colorRed;
-    ctx.setFillColor(barColor);
-    ctx.fillRect(new Rect(0, 0, fillW, BAR_HEIGHT));
-  }
-
-  return ctx.getImage();
-}
 
 const w = new ListWidget();
 w.backgroundColor = Color.dynamic(
@@ -346,7 +317,7 @@ headerStack.layoutHorizontally();
 headerStack.centerAlignContent();
 
 const fuelIcon = headerStack.addText("⛽");
-fuelIcon.font = Font.systemFont(20);
+fuelIcon.font = Font.systemFont(22);
 
 headerStack.addSpacer(8);
 
@@ -354,7 +325,7 @@ const titleCol = headerStack.addStack();
 titleCol.layoutVertically();
 
 const header = titleCol.addText("Combustible");
-header.font = Font.boldRoundedSystemFont(18);
+header.font = Font.boldRoundedSystemFont(20);
 header.textColor = textPrimary;
 
 const subtitle = titleCol.addText("Gasolina Especial · Santa Cruz");
@@ -363,105 +334,76 @@ subtitle.textColor = textSecondary;
 
 headerStack.addSpacer();
 
-// LIVE badge
-const liveStack = headerStack.addStack();
-liveStack.layoutHorizontally();
-liveStack.centerAlignContent();
-liveStack.backgroundColor = new Color("#34C759", 0.15);
-liveStack.cornerRadius = 8;
-liveStack.setPadding(3, 6, 3, 6);
+// Badge – con stock count
+const countAvail = top.filter((r) => r.litros > 0).length;
+const badge = headerStack.addStack();
+badge.layoutHorizontally();
+badge.centerAlignContent();
+badge.backgroundColor = new Color("#0A84FF", 0.15);
+badge.cornerRadius = 10;
+badge.setPadding(4, 8, 4, 8);
 
-const liveDot = liveStack.addText("●");
-liveDot.font = Font.systemFont(6);
-liveDot.textColor = colorGreen;
+const badgeText = badge.addText(`${countAvail}/${top.length}`);
+badgeText.font = Font.boldRoundedSystemFont(13);
+badgeText.textColor = accentBlue;
 
-liveStack.addSpacer(3);
+w.addSpacer(12);
 
-const liveLabel = liveStack.addText("LIVE");
-liveLabel.font = Font.boldSystemFont(9);
-liveLabel.textColor = colorGreen;
+// ── STATS GRID (2 columns x 4 rows)
+for (let row = 0; row < ROWS; row++) {
+  const rowStack = w.addStack();
+  rowStack.layoutHorizontally();
+  rowStack.spacing = CARD_GAP;
 
-w.addSpacer(10);
+  for (let col = 0; col < COLS; col++) {
+    const idx = row * COLS + col;
 
-// ── SEPARATOR
-const sep1 = w.addStack();
-sep1.backgroundColor = separatorColor;
-sep1.size = new Size(0, 0.5);
+    if (idx < top.length) {
+      const r = top[idx];
+      const available = r.litros > 0;
 
-w.addSpacer(6);
+      // Cell
+      const cell = rowStack.addStack();
+      cell.layoutVertically();
+      cell.spacing = 2;
+      cell.size = new Size(0, 0);
 
-// ── LIST ROWS
-for (let i = 0; i < top.length; i++) {
-  const r = top[i];
-  const available = r.litros > 0;
-  const ratio = r.litros / maxLitros;
+      // Label: STATION NAME (uppercase, accent color)
+      const label = cell.addText(r.name.toUpperCase());
+      label.font = Font.boldSystemFont(10);
+      label.textColor = accentBlue;
+      label.lineLimit = 1;
+      label.minimumScaleFactor = 0.8;
 
-  const row = w.addStack();
-  row.layoutHorizontally();
-  row.centerAlignContent();
+      // Big number
+      const numStr = available
+        ? r.litros.toLocaleString("es-BO")
+        : "—";
+      const numText = cell.addText(numStr);
+      numText.font = Font.boldRoundedSystemFont(22);
+      numText.textColor = available ? textPrimary : colorRed;
+      numText.lineLimit = 1;
+      numText.minimumScaleFactor = 0.6;
 
-  // Rank
-  const rankColors = [
-    new Color("#FFD700"),
-    new Color("#C0C0C0"),
-    new Color("#CD7F32"),
-  ];
-  const rankText = row.addText(`${i + 1}`);
-  rankText.font = Font.boldRoundedSystemFont(13);
-  rankText.textColor = i < 3 ? rankColors[i] : textSecondary;
-  rankText.minimumScaleFactor = 1;
-
-  row.addSpacer(10);
-
-  // Left column: name + company + bar
-  const leftCol = row.addStack();
-  leftCol.layoutVertically();
-  leftCol.spacing = 1;
-
-  const nameText = leftCol.addText(r.name);
-  nameText.font = Font.semiboldRoundedSystemFont(14);
-  nameText.textColor = textPrimary;
-  nameText.lineLimit = 1;
-
-  const companyText = leftCol.addText(r.company);
-  companyText.font = Font.systemFont(10);
-  companyText.textColor = textSecondary;
-  companyText.lineLimit = 1;
-
-  // Mini progress bar
-  const barImg = leftCol.addImage(drawBar(available ? ratio : 0));
-  barImg.imageSize = new Size(BAR_WIDTH, BAR_HEIGHT);
-
-  row.addSpacer();
-
-  // Right column: liters value
-  const rightCol = row.addStack();
-  rightCol.layoutVertically();
-
-  const litrosStr = available
-    ? r.litros.toLocaleString("es-BO")
-    : "—";
-  const litrosText = rightCol.addText(litrosStr);
-  litrosText.font = Font.boldRoundedSystemFont(18);
-  litrosText.textColor = available ? textPrimary : colorRed;
-  litrosText.rightAlignText();
-  litrosText.lineLimit = 1;
-  litrosText.minimumScaleFactor = 0.7;
-
-  if (available) {
-    const unitText = rightCol.addText("litros");
-    unitText.font = Font.systemFont(9);
-    unitText.textColor = textSecondary;
-    unitText.rightAlignText();
+      // Subtitle: company + "litros"
+      const sub = cell.addText(
+        available ? `${r.company} · litros` : r.company
+      );
+      sub.font = Font.systemFont(10);
+      sub.textColor = textSecondary;
+      sub.lineLimit = 1;
+    } else {
+      rowStack.addSpacer();
+    }
   }
 
-  // Row separator
-  if (i < top.length - 1) {
-    w.addSpacer(5);
-    const sepRow = w.addStack();
-    sepRow.backgroundColor = separatorColor;
-    sepRow.size = new Size(0, 0.5);
-    w.addSpacer(5);
+  // Separator between rows
+  if (row < ROWS - 1) {
+    w.addSpacer(6);
+    const sep = w.addStack();
+    sep.backgroundColor = separatorColor;
+    sep.size = new Size(0, 0.5);
+    w.addSpacer(6);
   }
 }
 
@@ -487,12 +429,22 @@ meta.textColor = textSecondary;
 
 footerStack.addSpacer();
 
-const countAvail = top.filter((r) => r.litros > 0).length;
-const availText = footerStack.addText(
-  `${countAvail}/${top.length} con stock`
-);
-availText.font = Font.mediumSystemFont(10);
-availText.textColor = countAvail === top.length ? colorGreen : textSecondary;
+const liveStack = footerStack.addStack();
+liveStack.layoutHorizontally();
+liveStack.centerAlignContent();
+liveStack.backgroundColor = new Color("#34C759", 0.15);
+liveStack.cornerRadius = 8;
+liveStack.setPadding(3, 6, 3, 6);
+
+const liveDot = liveStack.addText("●");
+liveDot.font = Font.systemFont(6);
+liveDot.textColor = colorGreen;
+
+liveStack.addSpacer(3);
+
+const liveLabel = liveStack.addText("EN VIVO");
+liveLabel.font = Font.boldSystemFont(9);
+liveLabel.textColor = colorGreen;
 
 /***********************
  * PRESENTACIÓN
@@ -502,7 +454,6 @@ Script.setWidget(w);
 if (config.runsInWidget) {
   // En home screen: solo actualizar datos
 } else {
-  // Al tocar: mostrar widget actualizado y luego menú Waze
   await w.presentLarge();
 
   const alert = new Alert();
