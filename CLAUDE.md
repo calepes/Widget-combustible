@@ -6,12 +6,20 @@ Widget de Scriptable (iOS) que muestra disponibilidad de Gasolina Especial en es
 
 ## Key files
 
-- `all-stations-widget.js` — Widget principal con todas las estaciones (Large widget)
+### Widgets
+- `all-stations-widget.js` — Widget principal con todas las estaciones (Large widget, diseño lista)
 - `cards-widget.js` — Widget alternativo con diseño de tarjetas en grid 2x2
 - `fuel-widget.js` — Widget original (solo Genex Banzer, tamaño pequeño)
-- `loader-combustible.js` — Loader que descarga y ejecuta el widget desde GitHub
-- `loader-test.js` — Loader de pruebas
 - `Equipetrol/`, `Pirai/`, `Urubo/`, `Vangas/`, `Rivero/` — Widgets individuales por estación
+
+### Loaders
+Cada loader descarga y ejecuta un widget desde una rama específica de GitHub. Usan cachés independientes para no pisarse entre sí.
+
+| Loader | Rama | Archivo | Caché | Icono | Uso |
+|--------|------|---------|-------|-------|-----|
+| `loader-combustible.js` | `main` | `all-stations-widget.js` | `combustible-cache/` | naranja | Producción |
+| `loader-test.js` | `claude/cardsv2-sbRss` | `cards-widget.js` | `combustible-cache-test/` | naranja | Pruebas cards widget |
+| `loader-review.js` | `claude/review-fuel-widget-sbRss` | `all-stations-widget.js` | `combustible-cache-review/` | verde | Pruebas list widget |
 
 ## Tech stack
 
@@ -24,7 +32,7 @@ Widget de Scriptable (iOS) que muestra disponibilidad de Gasolina Especial en es
 
 - Widgets use Scriptable's `ListWidget` API with horizontal/vertical stacks for layout
 - No npm, no bundler — each `.js` file is a standalone Scriptable script
-- The loader pattern (`loader-combustible.js`) fetches the latest widget code from GitHub and caches it locally in iCloud
+- El patrón loader descarga el widget desde GitHub y lo cachea en iCloud. Hay tres loaders independientes (ver tabla en Key files), cada uno apuntando a una rama y archivo distinto con su propio directorio de caché
 - Widget sizes are Large; layout must work across iPhone screen sizes
 - Support for both light and dark mode via `Color.dynamic()`
 - Navigation to stations via Waze deep links
@@ -88,10 +96,10 @@ Toda decisión de diseño debe seguir las [Apple Human Interface Guidelines para
   - Color de distancia dinámico (verde→naranja→rojo según km)
   - Distancias reales por ruta via OSRM API
   - Ordenamiento por cercanía con GPS del usuario
-  - `loader-test.js` apunta a esta rama
-- **`claude/review-fuel-widget-sbRss`** — Widget de lista (`all-stations-widget.js`). Colores originales iOS. Sin `cards-widget.js`.
+  - `loader-test.js` apunta a esta rama (caché: `combustible-cache-test/`)
+- **`claude/review-fuel-widget-sbRss`** — Widget de lista (`all-stations-widget.js`). Colores originales iOS. Sin `cards-widget.js`. `loader-review.js` apunta a esta rama (caché: `combustible-cache-review/`).
 - **`claude/cards-sbRss`** — Versión anterior del cards widget (sin distancias, sin OSRM, paleta original)
-- **`main`** — Versión estable con `all-stations-widget.js` solamente
+- **`main`** — Versión estable con `all-stations-widget.js` solamente. `loader-combustible.js` apunta a esta rama (caché: `combustible-cache/`)
 
 ### Paleta de colores actual (cardsv2)
 - Acento/badge: `#3B82F6` (ocean blue)
@@ -107,7 +115,13 @@ Toda decisión de diseño debe seguir las [Apple Human Interface Guidelines para
 
 ## Testing
 
-No automated tests. To test changes:
-1. Copy the widget code into Scriptable on an iPhone
-2. Run the script — it will call `presentLarge()` to show a preview
-3. Verify layout, data fetching, and Waze navigation
+No automated tests. Para probar cambios en desarrollo:
+
+1. Hacer push a la rama correspondiente
+2. En Scriptable, ejecutar el loader asociado a esa rama:
+   - Cards widget → ejecutar `loader-test.js` (descarga de `claude/cardsv2-sbRss`)
+   - List widget → ejecutar `loader-review.js` (descarga de `claude/review-fuel-widget-sbRss`)
+3. El loader descarga automáticamente la última versión y la ejecuta
+4. Verificar layout, datos, modo claro/oscuro y navegación Waze
+
+Para producción: `loader-combustible.js` descarga de `main`.

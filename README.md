@@ -43,17 +43,28 @@ Widget de [Scriptable](https://scriptable.app/) para iOS que muestra la disponib
 
 ## Archivos
 
+### Widgets
+
 | Archivo | Descripción |
 |---------|-------------|
-| `all-stations-widget.js` | Widget principal con todas las estaciones |
-| `loader-combustible.js` | Loader que descarga y ejecuta el widget desde GitHub |
-| `loader-test.js` | Loader de pruebas |
+| `all-stations-widget.js` | Widget principal con todas las estaciones (diseño lista) |
+| `cards-widget.js` | Widget alternativo con diseño de tarjetas grid 2x2 |
 | `fuel-widget.js` | Widget original (solo Genex Banzer, tamaño pequeño) |
 | `Equipetrol/` | Widget individual — Equipetrol |
 | `Pirai/` | Widget individual — Pirai |
 | `Urubo/` | Widget individual — Urubó |
 | `Vangas/` | Widget individual — Vangas |
 | `Rivero/` | Widget individual — Rivero |
+
+### Loaders
+
+Cada loader descarga y ejecuta un widget desde una rama específica de GitHub. Usan cachés independientes para no pisarse entre sí.
+
+| Loader | Rama | Widget | Caché | Icono | Uso |
+|--------|------|--------|-------|-------|-----|
+| `loader-combustible.js` | `main` | `all-stations-widget.js` | `combustible-cache/` | naranja | Producción |
+| `loader-test.js` | `claude/cardsv2-sbRss` | `cards-widget.js` | `combustible-cache-test/` | naranja | Pruebas cards |
+| `loader-review.js` | `claude/review-fuel-widget-sbRss` | `all-stations-widget.js` | `combustible-cache-review/` | verde | Pruebas lista |
 
 ## Instalación
 
