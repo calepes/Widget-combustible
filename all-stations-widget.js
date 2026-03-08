@@ -281,8 +281,10 @@ const textSecondary = Color.dynamic(
   new Color("#6D6D72"),
   new Color("#8E8E93")
 );
-const colorRed = new Color("#FF3B30");
-const colorGreen = new Color("#34C759");
+const colorRed = new Color("#FF453A");
+const colorGreen = new Color("#30D158");
+const accentPurple = new Color("#BF5AF2");
+const barFillColor = new Color("#7D7AFF");
 
 /***********************
  * FONTS
@@ -307,7 +309,7 @@ headerStack.layoutVertically();
 
 const header = headerStack.addText("Combustible");
 header.font = Font.boldSystemFont(20);
-header.textColor = textPrimary;
+header.textColor = accentPurple;
 
 const subtitle = headerStack.addText("Gasolina Especial · Santa Cruz");
 subtitle.font = Font.systemFont(11);
@@ -367,7 +369,7 @@ for (let i = 0; i < results.length; i++) {
     : "Sin dato";
   const litrosText = row.addText(litrosStr);
   litrosText.font = Font.mediumSystemFont(13);
-  litrosText.textColor = r.litros > 0 ? textPrimary : colorRed;
+  litrosText.textColor = r.litros > 0 ? barFillColor : colorRed;
   litrosText.lineLimit = 1;
 
   // Separador sutil entre filas
@@ -406,7 +408,7 @@ const avail = metaStack.addText(
   `${countAvail}/${results.length} disponibles`
 );
 avail.font = Font.systemFont(10);
-avail.textColor = countAvail === results.length ? colorGreen : textSecondary;
+avail.textColor = countAvail === results.length ? colorGreen : accentPurple;
 
 /***********************
  * PRESENTACIÓN
