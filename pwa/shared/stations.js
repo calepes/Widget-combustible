@@ -32,7 +32,7 @@ export const STATIONS = [
     waze: "https://waze.com/ul?q=Vangas%20Hernando%20Sanabria%204to%20Anillo%20Santa%20Cruz%20Bolivia&navigate=yes",
   },
   {
-    name: "Urubo",
+    name: "Urubó",
     type: "gasgroup",
     company: "Orsa",
     lat: -17.7533, lon: -63.2213,
@@ -68,7 +68,7 @@ export const STATIONS = [
     waze: "https://waze.com/ul?q=Biopetrol%20Alemana%202do%20Anillo%20Santa%20Cruz%20Bolivia&navigate=yes",
   },
   {
-    name: "Lopez",
+    name: "López",
     type: "ec2",
     company: "Biopetrol",
     lat: -17.7400, lon: -63.2200,
