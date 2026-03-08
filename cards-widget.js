@@ -374,7 +374,7 @@ for (let row = 0; row < ROWS; row++) {
       const card = rowStack.addStack();
       card.layoutVertically();
       card.backgroundColor = cardBg;
-      card.cornerRadius = 12;
+      card.cornerRadius = 16;
       card.setPadding(8, 10, 8, 10);
       card.size = new Size(cardW, cardH);
 
@@ -391,7 +391,7 @@ for (let row = 0; row < ROWS; row++) {
       topRow.addSpacer(5);
 
       const nameText = topRow.addText(r.name);
-      nameText.font = Font.semiboldRoundedSystemFont(13);
+      nameText.font = Font.semiboldRoundedSystemFont(15);
       nameText.textColor = textPrimary;
       nameText.lineLimit = 1;
       nameText.minimumScaleFactor = 0.7;
@@ -416,7 +416,7 @@ for (let row = 0; row < ROWS; row++) {
         ? `${r.litros.toLocaleString("es-BO")} L`
         : "Sin dato";
       const litrosText = card.addText(litrosStr);
-      litrosText.font = Font.boldRoundedSystemFont(15);
+      litrosText.font = Font.boldRoundedSystemFont(17);
       litrosText.textColor = available ? textPrimary : colorRed;
       litrosText.lineLimit = 1;
       litrosText.minimumScaleFactor = 0.6;
