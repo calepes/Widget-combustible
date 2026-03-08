@@ -5,9 +5,9 @@
 // LOADER CARDS - apunta a la rama cards-v2
 
 var REPO_OWNER = "calepes";
-var REPO_NAME = "Widget-combustible";
+var REPO_NAME = "combustible";
 var BRANCH = "cards-v2";
-var FILE = "cards-widget.js";
+var FILE = "widget/cards-widget.js";
 
 var API_URL = "https://api.github.com/repos/" + REPO_OWNER + "/" + REPO_NAME + "/contents/" + FILE + "?ref=" + encodeURIComponent(BRANCH);
 
