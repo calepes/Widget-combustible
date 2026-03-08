@@ -6,6 +6,7 @@ const STATIONS = [
     name: "Genex Banzer",
     type: "genex",
     company: "Genex",
+    lat: -17.7605, lon: -63.1950,
     url:
       "https://genex.com.bo/estaciones/" +
       "?3142_product_cat%5B0%5D=294" +
@@ -20,6 +21,7 @@ const STATIONS = [
     name: "Vangas",
     type: "genex",
     company: "Genex",
+    lat: -17.8100, lon: -63.1650,
     url: "https://genex.com.bo/estaciones/",
     key: "VANGAS",
     fuel: "G. ESPECIAL+",
@@ -29,6 +31,7 @@ const STATIONS = [
     name: "Urubó",
     type: "gasgroup",
     company: "Orsa",
+    lat: -17.7450, lon: -63.2500,
     url: "https://gasgroup.com.bo/api/obtener-datos-temporales/CTqmwWgj",
     product: "GASOLINA ESPECIAL",
     waze: "https://waze.com/ul?q=Orsa%20Urubo%20Santa%20Cruz%20Bolivia&navigate=yes",
@@ -37,6 +40,7 @@ const STATIONS = [
     name: "Equipetrol",
     type: "ec2",
     company: "Biopetrol",
+    lat: -17.7700, lon: -63.2050,
     url: "http://ec2-3-22-240-207.us-east-2.compute.amazonaws.com/guiasaldos/main/donde/134",
     key: "EQUIPETROL",
     waze: "https://waze.com/ul?q=Biopetrol%20Equipetrol%204to%20Anillo%20Santa%20Cruz%20Bolivia&navigate=yes",
@@ -45,6 +49,7 @@ const STATIONS = [
     name: "Pirai",
     type: "ec2",
     company: "Biopetrol",
+    lat: -17.7800, lon: -63.2000,
     url: "http://ec2-3-22-240-207.us-east-2.compute.amazonaws.com/guiasaldos/main/donde/134",
     key: "PIRAI",
     waze: "https://waze.com/ul?q=Biopetrol%20Pirai%20Roca%20y%20Coronado%203er%20Anillo%20Santa%20Cruz%20Bolivia&navigate=yes",
@@ -53,6 +58,7 @@ const STATIONS = [
     name: "Alemana",
     type: "ec2",
     company: "Biopetrol",
+    lat: -17.7850, lon: -63.1750,
     url: "http://ec2-3-22-240-207.us-east-2.compute.amazonaws.com/guiasaldos/main/donde/134",
     key: "Alemana",
     waze: "https://waze.com/ul?q=Biopetrol%20Alemana%202do%20Anillo%20Santa%20Cruz%20Bolivia&navigate=yes",
@@ -61,6 +67,7 @@ const STATIONS = [
     name: "López",
     type: "ec2",
     company: "Biopetrol",
+    lat: -17.7400, lon: -63.2200,
     url: "http://ec2-3-22-240-207.us-east-2.compute.amazonaws.com/guiasaldos/main/donde/134",
     key: "Lopez",
     waze: "https://waze.com/ul?q=Biopetrol%20Lopez%20Banzer%207mo%20Anillo%20Santa%20Cruz%20Bolivia&navigate=yes",
@@ -69,6 +76,7 @@ const STATIONS = [
     name: "Viru Viru",
     type: "ec2",
     company: "Biopetrol",
+    lat: -17.7200, lon: -63.2400,
     url: "http://ec2-3-22-240-207.us-east-2.compute.amazonaws.com/guiasaldos/main/donde/134",
     key: "Viru Viru",
     waze: "https://waze.com/ul?q=Biopetrol%20Viru%20Viru%20Banzer%20Km%2010%20Santa%20Cruz%20Bolivia&navigate=yes",
@@ -77,6 +85,7 @@ const STATIONS = [
     name: "Gasco",
     type: "ec2",
     company: "Biopetrol",
+    lat: -17.7620, lon: -63.1970,
     url: "http://ec2-3-22-240-207.us-east-2.compute.amazonaws.com/guiasaldos/main/donde/134",
     key: "Gasco",
     waze: "https://waze.com/ul?q=Biopetrol%20Gasco%20Banzer%203er%20Anillo%20Santa%20Cruz%20Bolivia&navigate=yes",
@@ -85,6 +94,7 @@ const STATIONS = [
     name: "Rivero",
     type: "gsheets",
     company: "Rivero",
+    lat: -17.7750, lon: -63.1900,
     url:
       "https://docs.google.com/spreadsheets/u/0/d/e/" +
       "2CAIWO3els60V5S1vVAh0cccQxdcZ1MYZhD9A1pQ-ojCNPoNh-" +
@@ -102,6 +112,18 @@ function normalizeLiters(raw) {
   if (!raw) return 0;
   const digits = raw.replace(/[^\d]/g, "");
   return digits ? Number(digits) : 0;
+}
+
+// Haversine — distancia en km entre dos coordenadas
+function haversineKm(lat1, lon1, lat2, lon2) {
+  const R = 6371;
+  const toRad = (d) => (d * Math.PI) / 180;
+  const dLat = toRad(lat2 - lat1);
+  const dLon = toRad(lon2 - lon1);
+  const a =
+    Math.sin(dLat / 2) ** 2 +
+    Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLon / 2) ** 2;
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
 }
 
 /***********************
@@ -254,15 +276,42 @@ async function fetchStation(s) {
   return 0;
 }
 
-const results = await Promise.all(
-  STATIONS.map(async (s) => ({
-    name: s.name,
-    company: s.company,
-    litros: await fetchStation(s),
-  }))
-);
+// Obtener ubicación y datos de estaciones en paralelo
+let userLat = null;
+let userLon = null;
 
-results.sort((a, b) => b.litros - a.litros);
+const [stationResults, loc] = await Promise.all([
+  Promise.all(
+    STATIONS.map(async (s) => ({
+      name: s.name,
+      company: s.company,
+      lat: s.lat,
+      lon: s.lon,
+      litros: await fetchStation(s),
+    }))
+  ),
+  Location.current().catch(() => null),
+]);
+
+if (loc) {
+  userLat = loc.latitude;
+  userLon = loc.longitude;
+}
+
+// Calcular distancia a cada estación
+const results = stationResults.map((r) => ({
+  ...r,
+  distKm: userLat != null
+    ? haversineKm(userLat, userLon, r.lat, r.lon)
+    : null,
+}));
+
+// Ordenar por distancia si hay ubicación, sino por litros
+if (userLat != null) {
+  results.sort((a, b) => a.distKm - b.distKm);
+} else {
+  results.sort((a, b) => b.litros - a.litros);
+}
 
 const now = new Date();
 
@@ -324,7 +373,10 @@ const header = titleCol.addText("Combustible");
 header.font = Font.boldRoundedSystemFont(22);
 header.textColor = textPrimary;
 
-const subtitle = titleCol.addText("Gasolina Especial · Santa Cruz");
+const subtitleStr = userLat != null
+  ? "Gasolina Especial · Más cercanas"
+  : "Gasolina Especial · Santa Cruz";
+const subtitle = titleCol.addText(subtitleStr);
 subtitle.font = Font.systemFont(12);
 subtitle.textColor = textSecondary;
 
@@ -415,8 +467,27 @@ function addCard(parent, r) {
 
   card.addSpacer(4);
 
-  // Empresa (info secundaria)
-  const sub = card.addText(r.company);
+  // Info secundaria: distancia + empresa
+  const infoRow = card.addStack();
+  infoRow.layoutHorizontally();
+  infoRow.centerAlignContent();
+
+  if (r.distKm != null) {
+    const distText = infoRow.addText(
+      r.distKm < 1
+        ? `${Math.round(r.distKm * 1000)} m`
+        : `${r.distKm.toFixed(1)} km`
+    );
+    distText.font = Font.mediumSystemFont(11);
+    distText.textColor = accentBlue;
+    distText.lineLimit = 1;
+
+    const sep = infoRow.addText(" · ");
+    sep.font = Font.systemFont(11);
+    sep.textColor = textSecondary;
+  }
+
+  const sub = infoRow.addText(r.company);
   sub.font = Font.systemFont(11);
   sub.textColor = textSecondary;
   sub.lineLimit = 1;
@@ -481,10 +552,13 @@ if (config.runsInWidget) {
   alert.message = "Selecciona una estación para abrir en Waze";
 
   for (const r of results) {
-    const status = r.litros > 0
+    const litros = r.litros > 0
       ? `${r.litros.toLocaleString("es-BO")} L`
-      : "— Sin dato";
-    alert.addAction(`${r.name} — ${status}`);
+      : "Sin dato";
+    const dist = r.distKm != null
+      ? ` · ${r.distKm.toFixed(1)} km`
+      : "";
+    alert.addAction(`${r.name} — ${litros}${dist}`);
   }
   alert.addCancelAction("Cancelar");
 
