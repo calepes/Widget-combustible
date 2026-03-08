@@ -2,6 +2,13 @@
 
 Registro de cambios del Widget Combustible.
 
+## [2.1.1] - 2026-03-08 — Documentación
+
+### Mejorado
+- CLAUDE.md unificado a español, con secciones Setup y Gotchas
+- Sección Apple HIG extraída a archivo compartido `Personal/AppleHIG.md`
+- Documentar gotchas: loaders locales, rutas al mover archivos, umbrales Gasgroup, fragilidad Rivero
+
 ## [2.1.0] - 2026-03-08 — Paleta Ocean Blue + Distancia dinámica
 
 ### Cambiado
