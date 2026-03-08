@@ -416,7 +416,7 @@ const mm = String(now.getMinutes()).padStart(2, "0");
 footerStack.addSpacer();
 
 const meta = footerStack.addText(`Actualizado ${hh}:${mm}`);
-meta.font = Font.mediumSystemFont(11);
+meta.font = Font.mediumSystemFont(10);
 meta.textColor = textSecondary;
 
 /***********************
