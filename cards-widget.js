@@ -291,7 +291,7 @@ const MAX_CARDS = 8;
 const COLS = 2;
 const ROWS = Math.ceil(MAX_CARDS / COLS);
 const CARD_SPACING = 8;
-const WIDGET_PAD = 16;
+const WIDGET_PAD = 22;
 
 // Only show top 8 stations by fuel
 const top = results.slice(0, MAX_CARDS);
@@ -385,13 +385,13 @@ for (let row = 0; row < ROWS; row++) {
 
       // Rank number
       const rankText = topRow.addText(`${idx + 1}`);
-      rankText.font = Font.boldRoundedSystemFont(12);
+      rankText.font = Font.boldRoundedSystemFont(13);
       rankText.textColor = idx < 3 ? rankColors[idx] : textSecondary;
 
       topRow.addSpacer(5);
 
       const nameText = topRow.addText(r.name);
-      nameText.font = Font.semiboldRoundedSystemFont(16);
+      nameText.font = Font.semiboldRoundedSystemFont(17);
       nameText.textColor = textPrimary;
       nameText.lineLimit = 1;
       nameText.minimumScaleFactor = 0.7;
@@ -405,7 +405,7 @@ for (let row = 0; row < ROWS; row++) {
 
       // Company
       const companyText = card.addText(r.company);
-      companyText.font = Font.systemFont(10);
+      companyText.font = Font.systemFont(11);
       companyText.textColor = textSecondary;
       companyText.lineLimit = 1;
 
@@ -416,7 +416,7 @@ for (let row = 0; row < ROWS; row++) {
         ? `${r.litros.toLocaleString("es-BO")} L`
         : "Sin dato";
       const litrosText = card.addText(litrosStr);
-      litrosText.font = Font.boldRoundedSystemFont(18);
+      litrosText.font = Font.boldRoundedSystemFont(19);
       litrosText.textColor = available ? textPrimary : colorRed;
       litrosText.lineLimit = 1;
       litrosText.minimumScaleFactor = 0.6;
