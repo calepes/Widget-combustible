@@ -322,7 +322,7 @@ const sepColor = Color.dynamic(
 );
 const headerSep = w.addStack();
 headerSep.layoutHorizontally();
-const headerLine = headerSep.addText("─".repeat(50));
+const headerLine = headerSep.addText("─".repeat(200));
 headerLine.font = Font.systemFont(4);
 headerLine.textColor = sepColor;
 
@@ -375,7 +375,7 @@ for (let i = 0; i < results.length; i++) {
     w.addSpacer(3);
     const sepLine = w.addStack();
     sepLine.layoutHorizontally();
-    const line = sepLine.addText("─".repeat(50));
+    const line = sepLine.addText("─".repeat(200));
     line.font = Font.systemFont(3);
     line.textColor = Color.dynamic(
       new Color("#C7C7CC"),
