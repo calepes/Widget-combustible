@@ -384,110 +384,99 @@ const textSecondary = Color.dynamic(
   new Color("#6D6D72"),
   new Color("#8E8E93")
 );
-const colorRed = new Color("#FF453A");
-const colorGreen = new Color("#30D158");
-const cardBg = Color.dynamic(
+const textTertiary = Color.dynamic(
+  new Color("#AEAEB2"),
+  new Color("#636366")
+);
+const systemBlue = Color.dynamic(
+  new Color("#007AFF"),
+  new Color("#0A84FF")
+);
+const widgetBg = Color.dynamic(
   new Color("#F2F2F7"),
+  new Color("#000000")
+);
+const cardBg = Color.dynamic(
+  new Color("#FFFFFF"),
   new Color("#1C1C1E")
 );
-
-/***********************
- * WIDGET LARGE – CARDS
- * Diseño basado en Apple HIG Widgets
- ***********************/
-const MAX_ITEMS = 6;
-const COLS = 2;
-const ROWS = Math.ceil(MAX_ITEMS / COLS);
-const WIDGET_PAD = 16;
-const CARD_PAD = 10;
-const CARD_RADIUS = 14;
-const CARD_GAP = 8;
-
-const top = results.slice(0, MAX_ITEMS);
-const maxLitros = Math.max(...top.map((r) => r.litros), 1);
-
-const accentBlue = new Color("#3B82F6");
-
-// Color de distancia: verde (cerca) → naranja → rojo (lejos)
-// Interpola entre los colores según km (0–15 km rango)
-function distColor(km) {
-  const t = Math.min(km / 15, 1); // 0 = cerca, 1 = lejos
-  let r, g, b;
-  if (t < 0.5) {
-    // Verde (#34D399) → Naranja (#FB923C)
-    const p = t * 2;
-    r = Math.round(0x34 + (0xFB - 0x34) * p);
-    g = Math.round(0xD3 + (0x92 - 0xD3) * p);
-    b = Math.round(0x99 + (0x3C - 0x99) * p);
-  } else {
-    // Naranja (#FB923C) → Rojo (#EF4444)
-    const p = (t - 0.5) * 2;
-    r = Math.round(0xFB + (0xEF - 0xFB) * p);
-    g = Math.round(0x92 + (0x44 - 0x92) * p);
-    b = Math.round(0x3C + (0x44 - 0x3C) * p);
-  }
-  const hex = "#" + [r, g, b].map((c) => c.toString(16).padStart(2, "0")).join("");
-  return new Color(hex);
-}
 const barBgColor = Color.dynamic(
   new Color("#E5E5EA"),
   new Color("#38383A")
 );
 
-const w = new ListWidget();
-w.backgroundColor = Color.dynamic(
-  new Color("#FFFFFF"),
-  new Color("#000000")
-);
-w.setPadding(WIDGET_PAD, WIDGET_PAD, 12, WIDGET_PAD);
+/***********************
+ * FUNCIONES MODULARES
+ ***********************/
 
-// ── HEADER ─────────────────────────────
-const headerStack = w.addStack();
-headerStack.layoutHorizontally();
-headerStack.centerAlignContent();
+// Color semántico según porcentaje de stock
+function getStockColor(pct) {
+  if (pct >= 0.5) return new Color("#34C759");  // verde
+  if (pct >= 0.2) return new Color("#FF9500");  // naranja
+  return new Color("#FF3B30");                   // rojo
+}
 
-const titleCol = headerStack.addStack();
-titleCol.layoutVertically();
+// Formato de número con separadores (es-BO)
+function formatNumber(n) {
+  return n.toLocaleString("es-BO");
+}
 
-const header = titleCol.addText("Combustible");
-header.font = Font.boldRoundedSystemFont(22);
-header.textColor = textPrimary;
+// Chip de estado (Disponible / Sin dato)
+function createStatusChip(parent, pct) {
+  const available = pct > 0;
+  const chipColor = available ? new Color("#34C759") : new Color("#FF3B30");
 
-const subtitleStr = userLat != null
-  ? "Gasolina Especial · Más cercanas"
-  : "Gasolina Especial · Santa Cruz";
-const subtitle = titleCol.addText(subtitleStr);
-subtitle.font = Font.systemFont(12);
-subtitle.textColor = textSecondary;
+  const chip = parent.addStack();
+  chip.layoutHorizontally();
+  chip.centerAlignContent();
+  chip.backgroundColor = new Color(chipColor.hex, 0.12);
+  chip.cornerRadius = 4;
+  chip.setPadding(2, 6, 2, 6);
 
-headerStack.addSpacer();
+  const chipText = chip.addText(available ? "Disponible" : "Sin dato");
+  chipText.font = Font.mediumSystemFont(9);
+  chipText.textColor = chipColor;
+  chipText.lineLimit = 1;
+}
 
-// Badge – estaciones con stock
-const countAvail = top.filter((r) => r.litros > 0).length;
-const badge = headerStack.addStack();
-badge.layoutHorizontally();
-badge.centerAlignContent();
-badge.backgroundColor = new Color("#3B82F6", 0.12);
-badge.cornerRadius = 12;
-badge.setPadding(4, 10, 4, 10);
+// Barra de stock con porcentaje
+function createStockBar(parent, pct) {
+  const barRow = parent.addStack();
+  barRow.layoutHorizontally();
+  barRow.centerAlignContent();
+  barRow.spacing = 4;
 
-const badgeText = badge.addText(`${countAvail}/${top.length}`);
-badgeText.font = Font.boldRoundedSystemFont(14);
-badgeText.textColor = accentBlue;
+  const barTrack = barRow.addStack();
+  barTrack.layoutHorizontally();
+  barTrack.cornerRadius = 3;
+  barTrack.backgroundColor = barBgColor;
+  barTrack.size = new Size(0, 6);
 
-w.addSpacer(12);
+  if (pct > 0) {
+    const barFill = barTrack.addStack();
+    barFill.backgroundColor = getStockColor(pct);
+    barFill.cornerRadius = 3;
+    barFill.size = new Size(Math.max(pct * 110, 6), 6);
+  }
 
-// ── GRID DE TARJETAS (2 columnas × 3 filas) ──
-function addCard(parent, r) {
+  const pctText = barRow.addText(`${Math.round(pct * 100)}%`);
+  pctText.font = Font.systemFont(9);
+  pctText.textColor = textSecondary;
+  pctText.lineLimit = 1;
+}
+
+// Tarjeta de estación completa
+function createStationCard(parent, r, maxLitros) {
   const card = parent.addStack();
   card.layoutVertically();
   card.backgroundColor = cardBg;
-  card.cornerRadius = CARD_RADIUS;
-  card.setPadding(CARD_PAD, CARD_PAD, CARD_PAD, CARD_PAD);
+  card.cornerRadius = 12;
+  card.setPadding(10, 10, 10, 10);
 
   const available = r.litros > 0;
+  const pct = available ? r.litros / maxLitros : 0;
 
-  // Fila superior: nombre + indicador de estado
+  // Fila superior: nombre + chip de estado
   const topRow = card.addStack();
   topRow.layoutHorizontally();
   topRow.centerAlignContent();
@@ -500,23 +489,19 @@ function addCard(parent, r) {
 
   topRow.addSpacer();
 
-  const dot = topRow.addText("●");
-  dot.font = Font.systemFont(8);
-  dot.textColor = available ? colorGreen : colorRed;
+  createStatusChip(topRow, pct);
 
   card.addSpacer(4);
 
-  // Número de litros (dato principal — jerarquía HIG)
+  // Litros (dato principal)
   const numRow = card.addStack();
   numRow.layoutHorizontally();
   numRow.bottomAlignContent();
-  numRow.spacing = 3;
+  numRow.spacing = 2;
 
-  const numStr = available
-    ? r.litros.toLocaleString("es-BO")
-    : "Sin dato";
+  const numStr = available ? formatNumber(r.litros) : "—";
   const numText = numRow.addText(numStr);
-  numText.font = Font.boldRoundedSystemFont(available ? 22 : 14);
+  numText.font = Font.boldSystemFont(18);
   numText.textColor = available ? textPrimary : textSecondary;
   numText.lineLimit = 1;
   numText.minimumScaleFactor = 0.6;
@@ -529,50 +514,92 @@ function addCard(parent, r) {
 
   card.addSpacer(4);
 
-  // Barra de nivel relativo (estilo Apple Health/Fitness)
-  const pct = available ? r.litros / maxLitros : 0;
-
-  const barTrack = card.addStack();
-  barTrack.layoutHorizontally();
-  barTrack.cornerRadius = 3;
-  barTrack.backgroundColor = barBgColor;
-  barTrack.size = new Size(0, 6);
-
-  if (pct > 0) {
-    const barFill = barTrack.addStack();
-    barFill.backgroundColor = new Color("#60A5FA");
-    barFill.cornerRadius = 3;
-    barFill.size = new Size(Math.max(pct * 120, 6), 6);
-  }
+  // Barra de stock con porcentaje
+  createStockBar(card, pct);
 
   card.addSpacer(4);
 
-  // Info secundaria: distancia + empresa
+  // Footer: ícono pin + distancia en azul + brand en terciario
   const infoRow = card.addStack();
   infoRow.layoutHorizontally();
   infoRow.centerAlignContent();
 
   if (r.distKm != null) {
-    const distText = infoRow.addText(
-      r.distKm < 1
-        ? `${Math.round(r.distKm * 1000)} m`
-        : `${r.distKm.toFixed(1)} km`
-    );
-    distText.font = Font.boldSystemFont(11);
-    distText.textColor = distColor(r.distKm);
+    const pinIcon = SFSymbol.named("location.fill");
+    pinIcon.applyFont(Font.mediumSystemFont(9));
+    const pinImg = infoRow.addImage(pinIcon.image);
+    pinImg.imageSize = new Size(9, 9);
+    pinImg.tintColor = systemBlue;
+
+    infoRow.addSpacer(2);
+
+    const distStr = r.distKm < 1
+      ? `${Math.round(r.distKm * 1000)} m`
+      : `${r.distKm.toFixed(1)} km`;
+    const distText = infoRow.addText(distStr);
+    distText.font = Font.mediumSystemFont(11);
+    distText.textColor = systemBlue;
     distText.lineLimit = 1;
 
-    const sep = infoRow.addText(" · ");
-    sep.font = Font.systemFont(11);
-    sep.textColor = textSecondary;
+    infoRow.addSpacer(4);
   }
 
-  const sub = infoRow.addText(r.company);
-  sub.font = Font.systemFont(11);
-  sub.textColor = textSecondary;
-  sub.lineLimit = 1;
+  const brandText = infoRow.addText(r.company);
+  brandText.font = Font.systemFont(10);
+  brandText.textColor = textTertiary;
+  brandText.lineLimit = 1;
 }
 
+/***********************
+ * WIDGET – CARDS GRID
+ * Apple HIG Widgets
+ ***********************/
+const MAX_ITEMS = 6;
+const COLS = 2;
+const ROWS = Math.ceil(MAX_ITEMS / COLS);
+const CARD_GAP = 8;
+
+const top = results.slice(0, MAX_ITEMS);
+const maxLitros = Math.max(...top.map((r) => r.litros), 1);
+
+const w = new ListWidget();
+w.backgroundColor = widgetBg;
+w.setPadding(16, 16, 12, 16);
+
+// ── HEADER ─────────────────────────────
+const headerStack = w.addStack();
+headerStack.layoutHorizontally();
+headerStack.centerAlignContent();
+
+const titleCol = headerStack.addStack();
+titleCol.layoutVertically();
+
+const header = titleCol.addText("Combustible");
+header.font = Font.boldSystemFont(16);
+header.textColor = textPrimary;
+
+const subtitle = titleCol.addText("Gasolina Especial");
+subtitle.font = Font.systemFont(11);
+subtitle.textColor = textSecondary;
+
+headerStack.addSpacer();
+
+// Pill – estaciones con stock
+const countAvail = top.filter((r) => r.litros > 0).length;
+const pill = headerStack.addStack();
+pill.layoutHorizontally();
+pill.centerAlignContent();
+pill.backgroundColor = new Color(systemBlue.hex, 0.12);
+pill.cornerRadius = 10;
+pill.setPadding(3, 8, 3, 8);
+
+const pillText = pill.addText(`${countAvail}/${top.length}`);
+pillText.font = Font.boldSystemFont(13);
+pillText.textColor = systemBlue;
+
+w.addSpacer(10);
+
+// ── GRID DE TARJETAS (2 columnas × 3 filas) ──
 for (let row = 0; row < ROWS; row++) {
   const leftIdx = row * COLS;
   const rightIdx = leftIdx + 1;
@@ -581,21 +608,18 @@ for (let row = 0; row < ROWS; row++) {
   rowStack.layoutHorizontally();
   rowStack.spacing = CARD_GAP;
 
-  // Tarjeta izquierda
   if (leftIdx < top.length) {
-    addCard(rowStack, top[leftIdx]);
+    createStationCard(rowStack, top[leftIdx], maxLitros);
   } else {
     rowStack.addSpacer();
   }
 
-  // Tarjeta derecha
   if (rightIdx < top.length) {
-    addCard(rowStack, top[rightIdx]);
+    createStationCard(rowStack, top[rightIdx], maxLitros);
   } else {
     rowStack.addSpacer();
   }
 
-  // Espacio entre filas
   if (row < ROWS - 1) {
     w.addSpacer(CARD_GAP);
   }
