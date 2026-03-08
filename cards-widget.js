@@ -406,7 +406,29 @@ const CARD_GAP = 8;
 const top = results.slice(0, MAX_ITEMS);
 const maxLitros = Math.max(...top.map((r) => r.litros), 1);
 
-const accentPurple = new Color("#BF5AF2");
+const accentBlue = new Color("#3B82F6");
+
+// Color de distancia: verde (cerca) → naranja → rojo (lejos)
+// Interpola entre los colores según km (0–15 km rango)
+function distColor(km) {
+  const t = Math.min(km / 15, 1); // 0 = cerca, 1 = lejos
+  let r, g, b;
+  if (t < 0.5) {
+    // Verde (#34D399) → Naranja (#FB923C)
+    const p = t * 2;
+    r = Math.round(0x34 + (0xFB - 0x34) * p);
+    g = Math.round(0xD3 + (0x92 - 0xD3) * p);
+    b = Math.round(0x99 + (0x3C - 0x99) * p);
+  } else {
+    // Naranja (#FB923C) → Rojo (#EF4444)
+    const p = (t - 0.5) * 2;
+    r = Math.round(0xFB + (0xEF - 0xFB) * p);
+    g = Math.round(0x92 + (0x44 - 0x92) * p);
+    b = Math.round(0x3C + (0x44 - 0x3C) * p);
+  }
+  const hex = "#" + [r, g, b].map((c) => c.toString(16).padStart(2, "0")).join("");
+  return new Color(hex);
+}
 const barBgColor = Color.dynamic(
   new Color("#E5E5EA"),
   new Color("#38383A")
@@ -445,13 +467,13 @@ const countAvail = top.filter((r) => r.litros > 0).length;
 const badge = headerStack.addStack();
 badge.layoutHorizontally();
 badge.centerAlignContent();
-badge.backgroundColor = new Color("#BF5AF2", 0.12);
+badge.backgroundColor = new Color("#3B82F6", 0.12);
 badge.cornerRadius = 12;
 badge.setPadding(4, 10, 4, 10);
 
 const badgeText = badge.addText(`${countAvail}/${top.length}`);
 badgeText.font = Font.boldRoundedSystemFont(14);
-badgeText.textColor = accentPurple;
+badgeText.textColor = accentBlue;
 
 w.addSpacer(12);
 
@@ -518,7 +540,7 @@ function addCard(parent, r) {
 
   if (pct > 0) {
     const barFill = barTrack.addStack();
-    barFill.backgroundColor = new Color("#7D7AFF");
+    barFill.backgroundColor = new Color("#60A5FA");
     barFill.cornerRadius = 3;
     barFill.size = new Size(Math.max(pct * 120, 6), 6);
   }
@@ -536,8 +558,8 @@ function addCard(parent, r) {
         ? `${Math.round(r.distKm * 1000)} m`
         : `${r.distKm.toFixed(1)} km`
     );
-    distText.font = Font.mediumSystemFont(11);
-    distText.textColor = accentPurple;
+    distText.font = Font.boldSystemFont(11);
+    distText.textColor = distColor(r.distKm);
     distText.lineLimit = 1;
 
     const sep = infoRow.addText(" · ");
