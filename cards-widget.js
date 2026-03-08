@@ -297,8 +297,13 @@ const CARD_RADIUS = 14;
 const CARD_GAP = 8;
 
 const top = results.slice(0, MAX_ITEMS);
+const maxLitros = Math.max(...top.map((r) => r.litros), 1);
 
 const accentBlue = new Color("#0A84FF");
+const barBgColor = Color.dynamic(
+  new Color("#E5E5EA"),
+  new Color("#38383A")
+);
 
 const w = new ListWidget();
 w.backgroundColor = Color.dynamic(
@@ -340,7 +345,7 @@ badgeText.textColor = accentBlue;
 
 w.addSpacer(12);
 
-// ── GRID DE TARJETAS (2 columnas × 4 filas) ──
+// ── GRID DE TARJETAS (2 columnas × 3 filas) ──
 function addCard(parent, r) {
   const card = parent.addStack();
   card.layoutVertically();
@@ -390,7 +395,25 @@ function addCard(parent, r) {
     unitText.textColor = textSecondary;
   }
 
-  card.addSpacer(2);
+  card.addSpacer(4);
+
+  // Barra de nivel relativo (estilo Apple Health/Fitness)
+  const pct = available ? r.litros / maxLitros : 0;
+
+  const barTrack = card.addStack();
+  barTrack.layoutHorizontally();
+  barTrack.cornerRadius = 3;
+  barTrack.backgroundColor = barBgColor;
+  barTrack.size = new Size(0, 6);
+
+  if (pct > 0) {
+    const barFill = barTrack.addStack();
+    barFill.backgroundColor = accentBlue;
+    barFill.cornerRadius = 3;
+    barFill.size = new Size(Math.max(pct * 120, 6), 6);
+  }
+
+  card.addSpacer(4);
 
   // Empresa (info secundaria)
   const sub = card.addText(r.company);
