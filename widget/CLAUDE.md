@@ -2,7 +2,11 @@
 
 ## Project overview
 
-Widget de Scriptable (iOS) que muestra disponibilidad de Gasolina Especial en estaciones de servicio de Santa Cruz, Bolivia. Todo el código es JavaScript ejecutado en el runtime de Scriptable.
+Repo monorepo `calepes/combustible` con dos subproyectos:
+- `widget/` — Widget de Scriptable (iOS) que muestra disponibilidad de Gasolina Especial en Santa Cruz, Bolivia
+- `pwa/` — Progressive Web App (en desarrollo)
+
+Todo el código del widget es JavaScript ejecutado en el runtime de Scriptable.
 
 ## Key files
 
@@ -17,9 +21,9 @@ Cada loader descarga y ejecuta un widget desde una rama específica de GitHub. U
 
 | Loader | Rama | Archivo | Caché | Icono | Uso |
 |--------|------|---------|-------|-------|-----|
-| `loader-combustible.js` | `main` | `all-stations-widget.js` | `combustible-cache/` | naranja | Producción |
-| `loader-test.js` | `test` | `all-stations-widget.js` | `combustible-cache-test/` | naranja | Pruebas list widget |
-| `loader-cards.js` | `cards-v2` | `cards-widget.js` | `combustible-cache-cards/` | verde | Pruebas cards widget |
+| `loader-combustible.js` | `main` | `widget/all-stations-widget.js` | `combustible-cache/` | naranja | Producción |
+| `loader-test.js` | `test` | `widget/all-stations-widget.js` | `combustible-cache-test/` | naranja | Pruebas list widget |
+| `loader-cards.js` | `cards-v2` | `widget/cards-widget.js` | `combustible-cache-cards/` | verde | Pruebas cards widget |
 
 ## Tech stack
 
@@ -92,6 +96,8 @@ Toda decisión de diseño debe seguir las [Apple Human Interface Guidelines para
 ### Ramas
 - **`main`** — Producción. Widget de lista HIG (`all-stations-widget.js`). Título: "Combustible"
 - **`test`** — Pruebas pre-producción. Mismo widget de lista, título: "Combustible (test)"
+  - Incluye distancia OSRM/Haversine y ordenamiento por cercanía
+  - Colores de distancia: verde (≤7 km), naranja (≤12 km), rojo (>12 km)
 - **`cards-v2`** — Experimento de layout cards grid (`cards-widget.js`)
 
 ### Paleta de colores actual (cardsv2)
@@ -99,7 +105,10 @@ Toda decisión de diseño debe seguir las [Apple Human Interface Guidelines para
 - Barra de nivel: `#60A5FA` (sky blue)
 - Badge fondo: `#3B82F6` con 12% opacidad
 - Dot disponible: `#30D158`, no disponible: `#FF453A`
-- Distancia: interpolación `#34D399` (verde, cerca) → `#FB923C` (naranja) → `#EF4444` (rojo, lejos) en rango 0–15 km
+- Distancia cards: interpolación `#34D399` → `#FB923C` → `#EF4444` en rango 0–15 km
+
+### Paleta de distancia (list widget, rama test)
+- Verde `#34C759` (≤7 km), naranja `#FF9500` (≤12 km), rojo `#FF3B30` (>12 km)
 - Fondo widget: blanco/negro (light/dark)
 - Fondo tarjetas: `#F2F2F7` / `#1C1C1E` (light/dark)
 
