@@ -384,8 +384,8 @@ const textSecondary = Color.dynamic(
   new Color("#6D6D72"),
   new Color("#8E8E93")
 );
-const colorRed = new Color("#FF3B30");
-const colorGreen = new Color("#34C759");
+const colorRed = new Color("#FF453A");
+const colorGreen = new Color("#30D158");
 const cardBg = Color.dynamic(
   new Color("#F2F2F7"),
   new Color("#1C1C1E")
@@ -406,7 +406,7 @@ const CARD_GAP = 8;
 const top = results.slice(0, MAX_ITEMS);
 const maxLitros = Math.max(...top.map((r) => r.litros), 1);
 
-const accentBlue = new Color("#0A84FF");
+const accentPurple = new Color("#BF5AF2");
 const barBgColor = Color.dynamic(
   new Color("#E5E5EA"),
   new Color("#38383A")
@@ -445,13 +445,13 @@ const countAvail = top.filter((r) => r.litros > 0).length;
 const badge = headerStack.addStack();
 badge.layoutHorizontally();
 badge.centerAlignContent();
-badge.backgroundColor = new Color("#0A84FF", 0.12);
+badge.backgroundColor = new Color("#BF5AF2", 0.12);
 badge.cornerRadius = 12;
 badge.setPadding(4, 10, 4, 10);
 
 const badgeText = badge.addText(`${countAvail}/${top.length}`);
 badgeText.font = Font.boldRoundedSystemFont(14);
-badgeText.textColor = accentBlue;
+badgeText.textColor = accentPurple;
 
 w.addSpacer(12);
 
@@ -518,7 +518,7 @@ function addCard(parent, r) {
 
   if (pct > 0) {
     const barFill = barTrack.addStack();
-    barFill.backgroundColor = new Color("#64D2FF");
+    barFill.backgroundColor = new Color("#7D7AFF");
     barFill.cornerRadius = 3;
     barFill.size = new Size(Math.max(pct * 120, 6), 6);
   }
@@ -537,7 +537,7 @@ function addCard(parent, r) {
         : `${r.distKm.toFixed(1)} km`
     );
     distText.font = Font.mediumSystemFont(11);
-    distText.textColor = accentBlue;
+    distText.textColor = accentPurple;
     distText.lineLimit = 1;
 
     const sep = infoRow.addText(" · ");
