@@ -2,6 +2,26 @@
 
 Registro de cambios del Widget Combustible.
 
+## [2.0.0] - 2026-03-08 — Cards Widget (Apple HIG)
+
+### Agregado
+- Nuevo diseño `cards-widget.js` basado en tarjetas con fondo (`cardBg`) y corner radius 14pt
+- Barra de nivel relativo por estación (estilo Apple Health/Fitness, color cyan #64D2FF)
+- Indicador de estado verde/rojo (punto ●) en cada tarjeta
+
+### Mejorado
+- Tipografía con jerarquía HIG: nombre 13pt semibold, litros 22pt bold rounded, empresa 11pt
+- Todas las fuentes cumplen mínimo HIG de 11pt
+- Márgenes de 16pt en widget, 10pt padding interno en tarjetas, 8pt gap entre cards
+- Header simplificado: sin emoji, título 22pt bold rounded
+- Grid reducido a top 6 estaciones (3×2) para layout más espacioso
+- Menú Waze ahora muestra todas las estaciones (no solo las del widget)
+
+### Eliminado
+- Separadores horizontales (reemplazados por espaciado entre tarjetas)
+- Badge "EN VIVO" del footer (reduce ruido visual)
+- Emoji ⛽ del header
+
 ## [1.5.0] - 2026-03-08
 
 ### Mejorado

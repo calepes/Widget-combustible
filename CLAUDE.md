@@ -36,6 +36,49 @@ Widget de Scriptable (iOS) que muestra disponibilidad de Gasolina Especial en es
 - Numbers formatted with `toLocaleString("es-BO")`
 - No external dependencies — pure Scriptable APIs only
 
+## Design reference — Apple HIG Widgets
+
+Toda decisión de diseño debe seguir las [Apple Human Interface Guidelines para Widgets](https://developer.apple.com/design/human-interface-guidelines/widgets/). Resumen de las reglas clave:
+
+### Tipografía
+- Usar fuente del sistema (SF Pro) con jerarquía clara: texto grande/bold para datos principales, secundario más pequeño
+- Tamaño mínimo de fuente: 11pt
+- Alto contraste entre texto y fondo
+
+### Padding y márgenes
+- Margen mínimo de **16pt** desde los bordes del widget para texto y gráficos
+- **11pt** para layouts con gráficos ajustados
+- **8pt** para botones o elementos con fondo propio
+- Padding suficiente e igual entre elementos de un grid
+
+### Layout
+- Máximo **4 elementos por fila** en grids
+- El widget debe ser adaptable a distintos tamaños de pantalla
+- Widget small = un solo tap target; medium/large soportan múltiples
+- Alinear contenido con el centro del ícono de la app
+
+### Contenido
+- Enfocarse en **una sola cosa** por widget
+- Máximo **4 piezas de información** en widget small
+- El widget debe ser: informativo, personal y contextual
+- No incluir botón "Abrir App" — el contenido mismo debe ser tappeable
+- Incluir placeholder/skeleton cuando no hay datos
+
+### Visual
+- No personalizar el fondo del widget con fotos
+- Diseñar para **Light y Dark Mode**
+- Las esquinas (corner radius) deben coincidir con el radio del widget
+- Vista previa realista para el gallery del widget
+
+### Naming
+- El nombre del widget debe coincidir con el nombre de la app
+- Si hay múltiples widgets, usar nombres claros y concisos (ej: "Maps Nearby")
+
+### Principios HIG generales
+- **Clarity**: interfaz legible, jerarquía visual clara
+- **Deference**: el contenido del usuario es protagonista
+- **Depth**: capas visuales para navegación intuitiva
+
 ## Testing
 
 No automated tests. To test changes:
