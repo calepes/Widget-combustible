@@ -1,0 +1,5 @@
+# Wrangler local state
+.wrangler/
+
+# macOS
+.DS_Store
