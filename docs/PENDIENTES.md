@@ -4,10 +4,11 @@
 
 ## Bugs por resolver
 
-### 1. Waze no abre con navegación directa
-- Los links de Waze (`waze.com/ul?q=...&navigate=yes`) no funcionan correctamente al hacer tap en las cards
-- **Posible causa:** el `window.open(r.waze, '_blank')` puede estar bloqueado por el browser/PWA standalone mode
-- **Investigar:** usar `window.location.href = r.waze` en vez de `window.open`, o usar el schema `waze://` en iOS
+### 1. Distancia mostrada no coincide con la real en Waze
+- La app muestra distancias mucho menores a las reales (ej: 8 km vs 15+ km en Waze)
+- **Causa:** OSRM demo o fallback haversine calcula distancia recta/ruta simple, no la ruta real con tráfico
+- **Solución:** migrar a una API de routing más precisa (ver sección "Distancia de navegación más real")
+- **Prioridad alta** — afecta directamente la utilidad de la app
 
 ### 2. Línea del timeline desalineada con dots
 - El dot azul de "Tu ubicación" y los dots de estaciones no están perfectamente centrados con la línea vertical
