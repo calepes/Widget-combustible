@@ -438,6 +438,12 @@
       text-align: right;
     }
 
+    .card-bottom {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
     .card-cta {
       display: inline-flex;
       align-items: center;
@@ -451,6 +457,12 @@
     }
 
     .card-cta svg { width: 13px; height: 13px; }
+
+    .card-dist {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text-secondary);
+    }
 
     /* Footer */
     .update-footer {
@@ -683,13 +695,25 @@
         stockBar.appendChild(pctText);
         info.appendChild(stockBar);
 
-        // CTA
+        // Bottom row: CTA + distance
+        const bottom = document.createElement('div');
+        bottom.className = 'card-bottom';
+
         const cta = document.createElement('div');
         cta.className = 'card-cta';
         cta.innerHTML =
           '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="3 11 22 2 13 21 11 13 3 11"></polygon></svg>' +
           'Navegar';
-        info.appendChild(cta);
+        bottom.appendChild(cta);
+
+        if (r.distKm != null) {
+          const dist = document.createElement('span');
+          dist.className = 'card-dist';
+          dist.textContent = formatDistance(r.distKm);
+          bottom.appendChild(dist);
+        }
+
+        info.appendChild(bottom);
 
         header.appendChild(info);
         card.appendChild(header);
