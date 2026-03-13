@@ -243,106 +243,16 @@
       gap: 14px;
     }
 
-    /* 3D Isometric Pump Icon */
-    .pump-3d {
+    /* 3D Pump Icon (thiings.co) */
+    .pump-icon {
       width: 56px;
-      height: 64px;
+      height: 56px;
       flex-shrink: 0;
-      position: relative;
-      transform: perspective(200px) rotateY(-8deg) rotateX(2deg);
-      filter: drop-shadow(0 6px 10px rgba(0,0,0,0.12)) drop-shadow(0 2px 3px rgba(0,0,0,0.08));
+      object-fit: contain;
     }
 
-    .pump-3d .body {
-      position: absolute;
-      width: 34px; height: 44px;
-      bottom: 8px; left: 6px;
-      border-radius: 6px 6px 3px 3px;
-      overflow: hidden;
-    }
-    .pump-3d .body::after {
-      content: '';
-      position: absolute; inset: 0;
-      background: linear-gradient(105deg, rgba(255,255,255,0.35) 0%, transparent 50%, rgba(0,0,0,0.08) 100%);
-      border-radius: inherit;
-    }
-
-    .pump-3d.green .body { background: linear-gradient(170deg, #6EE7A0 0%, #34D058 25%, #22C55E 60%, #16A34A 100%); }
-    .pump-3d.orange .body { background: linear-gradient(170deg, #FDE68A 0%, #FBBF24 25%, #F59E0B 60%, #D97706 100%); }
-    .pump-3d.red .body { background: linear-gradient(170deg, #FCA5A5 0%, #F87171 25%, #EF4444 60%, #DC2626 100%); }
-    .pump-3d.gray .body { background: linear-gradient(170deg, #E5E7EB 0%, #D1D5DB 25%, #9CA3AF 60%, #6B7280 100%); }
-
-    .pump-3d .screen {
-      position: absolute;
-      width: 20px; height: 12px;
-      top: 18px; left: 13px;
-      border-radius: 2.5px;
-      background: linear-gradient(180deg, #FAFAFA 0%, #E8E8E8 100%);
-      box-shadow: inset 0 0.5px 1px rgba(0,0,0,0.08), 0 0.5px 0 rgba(255,255,255,0.4);
-    }
-    .pump-3d .screen::after {
-      content: '';
-      position: absolute;
-      width: 14px; height: 2px;
-      top: 4px; left: 3px;
-      background: rgba(0,0,0,0.12);
-      border-radius: 1px;
-    }
-
-    .pump-3d .nozzle-arm {
-      position: absolute;
-      width: 6px; height: 20px;
-      top: 14px; right: 4px;
-      border-radius: 3px;
-    }
-    .pump-3d.green .nozzle-arm { background: linear-gradient(180deg, #15803D, #14532D); }
-    .pump-3d.orange .nozzle-arm { background: linear-gradient(180deg, #B45309, #78350F); }
-    .pump-3d.red .nozzle-arm { background: linear-gradient(180deg, #B91C1C, #7F1D1D); }
-    .pump-3d.gray .nozzle-arm { background: linear-gradient(180deg, #6B7280, #374151); }
-
-    .pump-3d .hose {
-      position: absolute;
-      width: 14px; height: 14px;
-      top: 8px; right: 0;
-      border: 3px solid transparent;
-      border-right-color: #44403C;
-      border-top-color: #44403C;
-      border-radius: 0 10px 0 0;
-    }
-
-    .pump-3d .nozzle-tip {
-      position: absolute;
-      width: 10px; height: 5px;
-      top: 6px; right: 10px;
-      border-radius: 2px 2px 0 0;
-      background: linear-gradient(90deg, #57534E, #44403C);
-      transform: rotate(-30deg);
-    }
-
-    .pump-3d .base {
-      position: absolute;
-      width: 44px; height: 8px;
-      bottom: 0; left: 2px;
-      border-radius: 3px;
-      background: linear-gradient(180deg, #F5F5F4 0%, #D6D3D1 50%, #A8A29E 100%);
-      box-shadow: 0 2px 4px rgba(0,0,0,0.12);
-    }
-
-    .pump-3d .cap {
-      position: absolute;
-      width: 30px; height: 5px;
-      top: 9px; left: 8px;
-      border-radius: 3px 3px 0 0;
-      background: linear-gradient(180deg, rgba(255,255,255,0.5), rgba(255,255,255,0.1));
-    }
-
-    .pump-3d .shine {
-      position: absolute;
-      width: 6px; height: 18px;
-      top: 20px; left: 10px;
-      border-radius: 3px;
-      background: linear-gradient(180deg, rgba(255,255,255,0.5), transparent);
-      transform: rotate(2deg);
+    .pump-icon.dimmed {
+      filter: grayscale(1) opacity(0.5);
     }
 
     /* Card info */
@@ -534,7 +444,7 @@
     const footerTextEl = document.getElementById('footerText');
     const refreshBtn = document.getElementById('refreshBtn');
 
-    const MAX_ITEMS = 10;
+    const MAX_ITEMS = 30;
 
     // Centro de Santa Cruz de la Sierra (fallback cuando no hay geolocalización)
     const DEFAULT_LAT = -17.7833;
@@ -571,19 +481,15 @@
       });
     }
 
+    const PUMP_ICON_URL = 'https://lftz25oez4aqbxpq.public.blob.vercel-storage.com/image-Y9XTBPYYZden371yTkDUk5RakCVmX9.png';
+
     function createPumpIcon(colorClass) {
-      const pump = document.createElement('div');
-      pump.className = `pump-3d ${colorClass}`;
-      pump.innerHTML =
-        '<div class="base"></div>' +
-        '<div class="body"></div>' +
-        '<div class="screen"></div>' +
-        '<div class="cap"></div>' +
-        '<div class="shine"></div>' +
-        '<div class="nozzle-arm"></div>' +
-        '<div class="hose"></div>' +
-        '<div class="nozzle-tip"></div>';
-      return pump;
+      const img = document.createElement('img');
+      img.className = `pump-icon${colorClass === 'gray' ? ' dimmed' : ''}`;
+      img.src = PUMP_ICON_URL;
+      img.alt = 'Surtidor';
+      img.loading = 'lazy';
+      return img;
     }
 
     function renderJourney(stations, maxLitros) {
