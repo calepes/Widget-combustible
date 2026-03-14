@@ -6,6 +6,7 @@
 
 # API keys
 pwa/map/Api Maps
+.env
 
 # Superpowers brainstorm
 .superpowers/
