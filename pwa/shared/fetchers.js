@@ -222,6 +222,43 @@ export async function osrmDistances(originLat, originLon, stations) {
   }
 }
 
+/* ── Capacidad (Cloudflare KV via proxy) ── */
+
+const CAPACIDAD_URL = `${PROXY_URL}/capacidad`;
+
+/**
+ * Obtiene el mapa de capacidades desde Cloudflare KV.
+ * @returns {Promise<Object<string, number>>} nombre → capacidad en litros
+ */
+export async function fetchCapacityMap() {
+  try {
+    const resp = await fetch(CAPACIDAD_URL);
+    return await resp.json();
+  } catch (e) {
+    console.log('Error fetching capacidad:', e.message);
+    return {};
+  }
+}
+
+/**
+ * Reporta litros observados al servidor para actualizar el max historico.
+ * @param {Array<{name: string, litros: number}>} entries
+ * @returns {Promise<Object<string, number>>} mapa actualizado
+ */
+export async function reportCapacity(entries) {
+  try {
+    const resp = await fetch(CAPACIDAD_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(entries),
+    });
+    return await resp.json();
+  } catch (e) {
+    console.log('Error reporting capacidad:', e.message);
+    return {};
+  }
+}
+
 /* ── Fetch de estaciones ──────────────── */
 
 /**
@@ -264,22 +301,33 @@ async function fetchStation(s) {
 
 /**
  * Obtiene datos de todas las estaciones en paralelo.
+ * Reporta litros observados a Cloudflare KV y obtiene capacidades actualizadas.
  * @param {Array} stations — array de objetos estacion (de stations.js)
- * @returns {Promise<Array<{name, company, lat, lon, litros}>>}
+ * @returns {Promise<Array<{name, company, lat, lon, litros, capacidad}>>}
  */
 export async function fetchAllStations(stations) {
-  return Promise.all(
-    stations.map(async (s) => {
-      const litros = await fetchStation(s);
-      return {
-        name: s.name,
-        company: s.company,
-        lat: s.lat,
-        lon: s.lon,
-        litros,
-      };
-    })
+  const results = await Promise.all(
+    stations.map(async (s) => ({
+      name: s.name,
+      company: s.company,
+      lat: s.lat,
+      lon: s.lon,
+      litros: await fetchStation(s),
+    }))
   );
+
+  // Reportar litros observados y obtener capacidades actualizadas en un solo request
+  const entries = results
+    .filter((r) => r.litros > 0)
+    .map((r) => ({ name: r.name, litros: r.litros }));
+  const capMap = entries.length > 0
+    ? await reportCapacity(entries)
+    : await fetchCapacityMap();
+
+  return results.map((r) => ({
+    ...r,
+    capacidad: capMap[r.name] || 0,
+  }));
 }
 
 /**

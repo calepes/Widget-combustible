@@ -377,9 +377,9 @@
       return String(litros);
     }
 
-    function getColorClass(litros, maxLitros) {
+    function getColorClass(litros, capacidad) {
       if (litros === 0) return 'gray';
-      const pct = litros / maxLitros;
+      const pct = capacidad > 0 ? litros / capacidad : 0;
       if (pct >= 0.5) return 'green';
       if (pct >= 0.2) return 'orange';
       return 'red';
@@ -544,9 +544,10 @@
         for (const r of results) {
           if (r.lat == null || r.lon == null) continue;
 
-          const colorClass = getColorClass(r.litros, maxLitros);
+          const cap = r.capacidad > 0 ? r.capacidad : maxLitros;
+          const colorClass = getColorClass(r.litros, cap);
           const litrosShort = formatLitrosShort(r.litros);
-          const pct = r.litros > 0 ? r.litros / maxLitros : 0;
+          const pct = r.litros > 0 ? r.litros / cap : 0;
           const bgColor = COLOR_HEX[colorClass];
 
           const marker = new google.maps.Marker({
