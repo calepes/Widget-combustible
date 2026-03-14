@@ -530,6 +530,8 @@
           lon: coordMap[r.name]?.lon,
         }));
 
+        const maxLitros = Math.max(...results.map((r) => r.litros), 1);
+
         // Clear old markers
         for (const m of stationMarkers) m.setMap(null);
         stationMarkers = [];
@@ -542,7 +544,7 @@
         for (const r of results) {
           if (r.lat == null || r.lon == null) continue;
 
-          const cap = r.capacidad || 1;
+          const cap = r.capacidad > 0 ? r.capacidad : maxLitros;
           const colorClass = getColorClass(r.litros, cap);
           const litrosShort = formatLitrosShort(r.litros);
           const pct = r.litros > 0 ? r.litros / cap : 0;

@@ -222,40 +222,43 @@ export async function osrmDistances(originLat, originLon, stations) {
   }
 }
 
-/* ── Capacidad estimada (max historico) ── */
-
-const CAPACITY_STORAGE_KEY = 'combustible_capacidad_max';
+/* ── Capacidad desde Google Sheet ─────── */
 
 /**
- * Lee el mapa de capacidades estimadas desde localStorage.
- * @returns {Object<string, number>}
+ * URL del Google Sheet con capacidades por estacion.
+ * Columnas: A = Estación (nombre exacto), B = Capacidad (litros).
+ * Publicado en web, se consulta via gviz/tq como JSON.
  */
-function loadCapacityMap() {
+export const CAPACITY_SHEET_URL =
+  'https://docs.google.com/spreadsheets/d/e/' +
+  '2PACX-PLACEHOLDER' +
+  '/gviz/tq?tqx=out:json';
+
+/**
+ * Obtiene el mapa de capacidades desde el Google Sheet.
+ * @returns {Promise<Object<string, number>>} nombre → capacidad en litros
+ */
+export async function fetchCapacityMap() {
   try {
-    return JSON.parse(localStorage.getItem(CAPACITY_STORAGE_KEY)) || {};
-  } catch (_) {
+    const resp = await proxyFetch(CAPACITY_SHEET_URL);
+    const text = await resp.text();
+    // gviz responde con "google.visualization.Query.setResponse({...})"
+    const jsonStr = text.replace(/^[^(]*\(/, '').replace(/\);?\s*$/, '');
+    const data = JSON.parse(jsonStr);
+    const rows = data?.table?.rows || [];
+    const map = {};
+    for (const row of rows) {
+      const name = row.c?.[0]?.v;
+      const cap = row.c?.[1]?.v;
+      if (name && typeof cap === 'number' && cap > 0) {
+        map[name] = cap;
+      }
+    }
+    return map;
+  } catch (e) {
+    console.log('Error fetching capacidad sheet:', e.message);
     return {};
   }
-}
-
-/**
- * Actualiza la capacidad estimada de una estacion si el valor actual es mayor.
- * @param {string} name — nombre de la estacion
- * @param {number} litros — litros observados
- * @returns {number} capacidad estimada (max historico)
- */
-function updateCapacity(name, litros) {
-  if (litros <= 0) {
-    const map = loadCapacityMap();
-    return map[name] || 0;
-  }
-  const map = loadCapacityMap();
-  const prev = map[name] || 0;
-  if (litros > prev) {
-    map[name] = litros;
-    try { localStorage.setItem(CAPACITY_STORAGE_KEY, JSON.stringify(map)); } catch (_) {}
-  }
-  return Math.max(litros, prev);
 }
 
 /* ── Fetch de estaciones ──────────────── */
@@ -300,25 +303,25 @@ async function fetchStation(s) {
 
 /**
  * Obtiene datos de todas las estaciones en paralelo.
- * Incluye capacidad estimada (max historico observado, via localStorage).
+ * Incluye capacidad desde Google Sheet (si esta configurado).
  * @param {Array} stations — array de objetos estacion (de stations.js)
  * @returns {Promise<Array<{name, company, lat, lon, litros, capacidad}>>}
  */
 export async function fetchAllStations(stations) {
-  return Promise.all(
-    stations.map(async (s) => {
-      const litros = await fetchStation(s);
-      const capacidad = updateCapacity(s.name, litros);
-      return {
-        name: s.name,
-        company: s.company,
-        lat: s.lat,
-        lon: s.lon,
-        litros,
-        capacidad,
-      };
-    })
-  );
+  const [results, capMap] = await Promise.all([
+    Promise.all(stations.map(async (s) => ({
+      name: s.name,
+      company: s.company,
+      lat: s.lat,
+      lon: s.lon,
+      litros: await fetchStation(s),
+    }))),
+    fetchCapacityMap(),
+  ]);
+  return results.map((r) => ({
+    ...r,
+    capacidad: capMap[r.name] || 0,
+  }));
 }
 
 /**

@@ -505,6 +505,7 @@
     function renderJourney(stations) {
       const journey = document.createElement('div');
       journey.className = 'journey';
+      const maxLitros = Math.max(...stations.map((r) => r.litros), 1);
 
       // Origin node
       const origin = document.createElement('div');
@@ -518,7 +519,7 @@
 
       for (const r of stations) {
         const available = r.litros > 0;
-        const cap = r.capacidad || 1;
+        const cap = r.capacidad > 0 ? r.capacidad : maxLitros;
         const pct = available ? r.litros / cap : 0;
         const pctRound = Math.round(pct * 100);
         const colorClass = getColorClass(r.litros, cap);
