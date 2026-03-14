@@ -1,0 +1,23 @@
+{
+  "name": "combustible",
+  "version": "1.0.0",
+  "description": "Monitoreo en tiempo real de disponibilidad de **Gasolina Especial** en estaciones de servicio de Santa Cruz de la Sierra, Bolivia.",
+  "main": "index.js",
+  "directories": {
+    "doc": "docs"
+  },
+  "scripts": {
+    "test": "vitest run",
+    "test:report": "vitest run --reporter=default --reporter=junit --outputFile=test-results/junit.xml"
+  },
+  "repository": {
+    "type": "git",
+    "url": "http://local_proxy@127.0.0.1:38807/git/calepes/combustible"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "vitest": "^4.1.0"
+  }
+}

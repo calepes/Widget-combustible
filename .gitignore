@@ -9,3 +9,9 @@ pwa/map/Api Maps
 
 # Superpowers brainstorm
 .superpowers/
+
+# Node
+node_modules/
+
+# Test results
+test-results/
