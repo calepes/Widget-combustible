@@ -1,0 +1,55 @@
+# Combustible
+
+Monitoreo en tiempo real de disponibilidad de **Gasolina Especial** en estaciones de servicio de Santa Cruz de la Sierra, Bolivia.
+
+## Apps
+
+| App | URL | Descripción |
+|-----|-----|-------------|
+| Cards | [apps.lepesqueur.net/combustible/pwa/cards/](https://apps.lepesqueur.net/combustible/pwa/cards/) | Timeline vertical ordenado por distancia |
+| Mapa | [apps.lepesqueur.net/combustible/pwa/map/](https://apps.lepesqueur.net/combustible/pwa/map/) | Google Maps con markers de litros disponibles |
+| Widget iOS | Scriptable | Widget nativo para Home Screen |
+
+## 29 estaciones monitoreadas
+
+| Empresa | Estaciones | Fuente |
+|---------|------------|--------|
+| Genex (11) | Banzer, Vangas, Guaracachi, Trompillo, III, Mutualista, V, IV, II, Jarajorechi, Aracataca | HTML scraping genex.com.bo |
+| Biopetrol (16) | Equipetrol, Pirai, Alemana, López, Viru Viru, Gasco, Beni, Berea, Cabezas, La Teca, Lucyfer, Montecristo, Monteverde, Paraguá, Parapetí, Sur Central | HTML scraping EC2 |
+| Orsa (1) | Urubó | API JSON gasgroup.com.bo |
+| Rivero (1) | Rivero | Google Sheets chartJson |
+
+## Stack
+
+- **PWA:** HTML/CSS/JS vanilla, ES modules, Service Workers
+- **Widget:** Scriptable (iOS), JS standalone
+- **Proxy:** Cloudflare Worker (CORS proxy para scraping)
+- **Mapa:** Google Maps JavaScript API
+- **Distancias:** Google Distance Matrix → OSRM → Haversine (fallback chain)
+- **Deploy:** GitHub Pages (push a `main`)
+
+## Estructura
+
+```
+widget/          ← Widgets Scriptable (iOS)
+pwa/
+├── cards/       ← Vista journey (timeline vertical, icono 3D)
+├── map/         ← Vista mapa (Google Maps, markers con litros)
+└── shared/      ← stations.js, fetchers.js, icons/
+proxy/           ← Cloudflare Worker (CORS proxy)
+docs/            ← Backlog, specs
+```
+
+## Setup
+
+```bash
+git clone git@github.com:calepes/combustible.git
+```
+
+No hay dependencias npm. Todo es vanilla JS.
+
+## Deploy
+
+- **PWA:** push a `main` → GitHub Pages automático
+- **Proxy:** `cd proxy && npx wrangler deploy`
+- **Widget:** push a rama → loader en Scriptable descarga automáticamente
