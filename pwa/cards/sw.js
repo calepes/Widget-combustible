@@ -1,4 +1,4 @@
-const CACHE_NAME = 'combustible-cards-v13';
+const CACHE_NAME = 'combustible-cards-v14';
 
 const APP_SHELL = [
   './',
@@ -55,8 +55,8 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // index.html — network first (always get latest)
-  if (url.pathname.endsWith('/') || url.pathname.endsWith('/index.html')) {
+  // index.html and icons — network first (always get latest)
+  if (url.pathname.endsWith('/') || url.pathname.endsWith('/index.html') || url.pathname.endsWith('.png')) {
     event.respondWith(
       fetch(event.request)
         .then((response) => {
