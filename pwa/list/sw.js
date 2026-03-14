@@ -1,4 +1,4 @@
-const CACHE_NAME = 'combustible-list-v1';
+const CACHE_NAME = 'combustible-list-v2';
 
 const APP_SHELL = [
   './',
@@ -38,6 +38,20 @@ self.addEventListener('fetch', (event) => {
     event.respondWith(
       fetch(event.request)
         .then((response) => {
+          return response;
+        })
+        .catch(() => caches.match(event.request))
+    );
+    return;
+  }
+
+  // index.html — network first (always get latest)
+  if (url.pathname.endsWith('/') || url.pathname.endsWith('/index.html')) {
+    event.respondWith(
+      fetch(event.request)
+        .then((response) => {
+          const clone = response.clone();
+          caches.open(CACHE_NAME).then((cache) => cache.put(event.request, clone));
           return response;
         })
         .catch(() => caches.match(event.request))

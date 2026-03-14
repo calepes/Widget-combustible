@@ -22,7 +22,7 @@ Registro de ideas, bugs y mejoras. Cada ítem tiene estado y prioridad para mape
 | M1 | ~~Migrar API de distancias~~ | alta | hecho | Google Distance Matrix implementado (2026-03-14). Fallback: OSRM → Haversine |
 | M2 | Validar colores de icono 3D en móvil | media | pendiente | hue-rotate verde/naranja/rojo/gris — verificar que se ven bien en cel |
 | M3 | Limpiar deploy duplicado | baja | pendiente | Eliminar copia vieja en `calepes.github.io/combustible/pwa/` |
-| M4 | SW: network-first para index.html | baja | pendiente | Actualmente cache-first requiere bump manual de `CACHE_NAME` |
+| M4 | ~~SW: network-first para index.html~~ | baja | hecho | Implementado en cards (v11), list (v2), map (v6). 2026-03-14 |
 
 ## Ideas
 
