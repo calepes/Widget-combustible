@@ -222,41 +222,39 @@ export async function osrmDistances(originLat, originLon, stations) {
   }
 }
 
-/* ── Capacidad desde Google Sheet ─────── */
+/* ── Capacidad (Cloudflare KV via proxy) ── */
+
+const CAPACIDAD_URL = `${PROXY_URL}/capacidad`;
 
 /**
- * URL del Google Sheet con capacidades por estacion.
- * Columnas: A = Estación (nombre exacto), B = Capacidad (litros).
- * Publicado en web, se consulta via gviz/tq como JSON.
- */
-export const CAPACITY_SHEET_URL =
-  'https://docs.google.com/spreadsheets/d/e/' +
-  '2PACX-PLACEHOLDER' +
-  '/gviz/tq?tqx=out:json';
-
-/**
- * Obtiene el mapa de capacidades desde el Google Sheet.
+ * Obtiene el mapa de capacidades desde Cloudflare KV.
  * @returns {Promise<Object<string, number>>} nombre → capacidad en litros
  */
 export async function fetchCapacityMap() {
   try {
-    const resp = await proxyFetch(CAPACITY_SHEET_URL);
-    const text = await resp.text();
-    // gviz responde con "google.visualization.Query.setResponse({...})"
-    const jsonStr = text.replace(/^[^(]*\(/, '').replace(/\);?\s*$/, '');
-    const data = JSON.parse(jsonStr);
-    const rows = data?.table?.rows || [];
-    const map = {};
-    for (const row of rows) {
-      const name = row.c?.[0]?.v;
-      const cap = row.c?.[1]?.v;
-      if (name && typeof cap === 'number' && cap > 0) {
-        map[name] = cap;
-      }
-    }
-    return map;
+    const resp = await fetch(CAPACIDAD_URL);
+    return await resp.json();
   } catch (e) {
-    console.log('Error fetching capacidad sheet:', e.message);
+    console.log('Error fetching capacidad:', e.message);
+    return {};
+  }
+}
+
+/**
+ * Reporta litros observados al servidor para actualizar el max historico.
+ * @param {Array<{name: string, litros: number}>} entries
+ * @returns {Promise<Object<string, number>>} mapa actualizado
+ */
+export async function reportCapacity(entries) {
+  try {
+    const resp = await fetch(CAPACIDAD_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(entries),
+    });
+    return await resp.json();
+  } catch (e) {
+    console.log('Error reporting capacidad:', e.message);
     return {};
   }
 }
@@ -303,21 +301,29 @@ async function fetchStation(s) {
 
 /**
  * Obtiene datos de todas las estaciones en paralelo.
- * Incluye capacidad desde Google Sheet (si esta configurado).
+ * Reporta litros observados a Cloudflare KV y obtiene capacidades actualizadas.
  * @param {Array} stations — array de objetos estacion (de stations.js)
  * @returns {Promise<Array<{name, company, lat, lon, litros, capacidad}>>}
  */
 export async function fetchAllStations(stations) {
-  const [results, capMap] = await Promise.all([
-    Promise.all(stations.map(async (s) => ({
+  const results = await Promise.all(
+    stations.map(async (s) => ({
       name: s.name,
       company: s.company,
       lat: s.lat,
       lon: s.lon,
       litros: await fetchStation(s),
-    }))),
-    fetchCapacityMap(),
-  ]);
+    }))
+  );
+
+  // Reportar litros observados y obtener capacidades actualizadas en un solo request
+  const entries = results
+    .filter((r) => r.litros > 0)
+    .map((r) => ({ name: r.name, litros: r.litros }));
+  const capMap = entries.length > 0
+    ? await reportCapacity(entries)
+    : await fetchCapacityMap();
+
   return results.map((r) => ({
     ...r,
     capacidad: capMap[r.name] || 0,
