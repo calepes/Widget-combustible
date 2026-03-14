@@ -1,4 +1,4 @@
-const CACHE_NAME = 'combustible-cards-v10';
+const CACHE_NAME = 'combustible-cards-v11';
 
 const APP_SHELL = [
   './',
@@ -43,6 +43,20 @@ self.addEventListener('fetch', (event) => {
     url.pathname.includes('workers.dev') ||
     url.pathname.includes('osrm')
   ) {
+    event.respondWith(
+      fetch(event.request)
+        .then((response) => {
+          const clone = response.clone();
+          caches.open(CACHE_NAME).then((cache) => cache.put(event.request, clone));
+          return response;
+        })
+        .catch(() => caches.match(event.request))
+    );
+    return;
+  }
+
+  // index.html — network first (always get latest)
+  if (url.pathname.endsWith('/') || url.pathname.endsWith('/index.html')) {
     event.respondWith(
       fetch(event.request)
         .then((response) => {
