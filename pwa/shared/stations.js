@@ -155,7 +155,7 @@ export const STATIONS = [
     name: "López",
     type: "ec2",
     company: "Biopetrol",
-    lat: -17.7186, lon: -63.1641,
+    lat: -17.7256, lon: -63.1653,
     url: "http://ec2-3-22-240-207.us-east-2.compute.amazonaws.com/guiasaldos/main/donde/134",
     key: "Lopez",
     waze: "https://waze.com/ul?q=Biopetrol%20Lopez%20Banzer%207mo%20Anillo%20Santa%20Cruz%20Bolivia&navigate=yes",

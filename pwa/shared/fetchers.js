@@ -128,6 +128,56 @@ export function parseChartJson(html, product) {
 /* ── Distancias ───────────────────────── */
 
 /**
+ * Distancias reales por ruta via Google Maps Distance Matrix Service (client-side).
+ * Requiere que google.maps esté cargado. Máximo 25 destinos por request.
+ * @param {number} originLat
+ * @param {number} originLon
+ * @param {{lat: number, lon: number}[]} stations
+ * @returns {Promise<number[]|null>} array de distancias en km, o null si falla
+ */
+export async function googleDistances(originLat, originLon, stations) {
+  if (typeof google === 'undefined' || !google.maps) return null;
+
+  try {
+    const service = new google.maps.DistanceMatrixService();
+    const BATCH_SIZE = 25;
+    const allDistances = [];
+
+    for (let i = 0; i < stations.length; i += BATCH_SIZE) {
+      const batch = stations.slice(i, i + BATCH_SIZE);
+      const destinations = batch.map((s) => new google.maps.LatLng(s.lat, s.lon));
+
+      const result = await new Promise((resolve, reject) => {
+        service.getDistanceMatrix(
+          {
+            origins: [new google.maps.LatLng(originLat, originLon)],
+            destinations,
+            travelMode: google.maps.TravelMode.DRIVING,
+          },
+          (response, status) => {
+            if (status === 'OK') resolve(response);
+            else reject(new Error(`Distance Matrix: ${status}`));
+          }
+        );
+      });
+
+      for (const el of result.rows[0].elements) {
+        if (el.status === 'OK') {
+          allDistances.push(el.distance.value / 1000);
+        } else {
+          allDistances.push(null);
+        }
+      }
+    }
+
+    return allDistances;
+  } catch (e) {
+    console.log('Google Distance Matrix ERROR:', e.message);
+    return null;
+  }
+}
+
+/**
  * Distancia en linea recta (Haversine) en km.
  */
 export function haversineKm(lat1, lon1, lat2, lon2) {
@@ -233,18 +283,26 @@ export async function fetchAllStations(stations) {
 }
 
 /**
- * Obtiene distancias OSRM para cada resultado. Fallback a Haversine si OSRM falla.
- * Retorna nuevo array con propiedad distKm agregada.
+ * Obtiene distancias para cada resultado.
+ * Orden de prioridad: Google Distance Matrix → OSRM → Haversine.
  * @param {number} userLat
  * @param {number} userLon
  * @param {Array<{lat, lon}>} results — resultados de fetchAllStations
  * @returns {Promise<Array>}
  */
 export async function getDistances(userLat, userLon, results) {
-  const routeDistances = await osrmDistances(userLat, userLon, results);
+  // Intentar Google Distance Matrix primero
+  let routeDistances = await googleDistances(userLat, userLon, results);
+
+  // Fallback a OSRM si Google falla
+  if (!routeDistances) {
+    console.log('Fallback a OSRM para distancias');
+    routeDistances = await osrmDistances(userLat, userLon, results);
+  }
+
   return results.map((r, i) => ({
     ...r,
-    distKm: routeDistances != null
+    distKm: routeDistances?.[i] != null
       ? routeDistances[i]
       : haversineKm(userLat, userLon, r.lat, r.lon),
   }));

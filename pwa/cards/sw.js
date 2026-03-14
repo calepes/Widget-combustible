@@ -1,4 +1,4 @@
-const CACHE_NAME = 'combustible-cards-v9';
+const CACHE_NAME = 'combustible-cards-v10';
 
 const APP_SHELL = [
   './',
