@@ -137,7 +137,7 @@ export const STATIONS = [
     name: "Pirai",
     type: "ec2",
     company: "Biopetrol",
-    lat: -17.7800, lon: -63.2000,
+    lat: -17.7819, lon: -63.2039,
     url: "http://ec2-3-22-240-207.us-east-2.compute.amazonaws.com/guiasaldos/main/donde/134",
     key: "PIRAI",
     waze: "https://waze.com/ul?q=Biopetrol%20Pirai%20Roca%20y%20Coronado%203er%20Anillo%20Santa%20Cruz%20Bolivia&navigate=yes",

@@ -3,3 +3,9 @@
 
 # macOS
 .DS_Store
+
+# API keys
+pwa/map/Api Maps
+
+# Superpowers brainstorm
+.superpowers/

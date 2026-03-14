@@ -9,8 +9,6 @@
   <link rel="manifest" href="manifest.json">
   <link rel="icon" href="../shared/icons/icon-192.png" type="image/png">
   <link rel="apple-touch-icon" href="../shared/icons/apple-touch-icon.png">
-  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <style>
     :root {
       --bg: #F2F2F7;
@@ -24,7 +22,6 @@
       --system-red: #FF3B30;
       --bar-bg: #E5E5EA;
       --overlay-bg: rgba(255,255,255,0.85);
-      --tile-filter: none;
     }
 
     @media (prefers-color-scheme: dark) {
@@ -40,7 +37,6 @@
         --system-red: #FF453A;
         --bar-bg: #38383A;
         --overlay-bg: rgba(28,28,30,0.85);
-        --tile-filter: brightness(0.7) contrast(1.1);
       }
     }
 
@@ -60,18 +56,13 @@
       left: 0;
     }
 
-    /* Dark mode tiles */
-    @media (prefers-color-scheme: dark) {
-      .leaflet-tile-pane { filter: var(--tile-filter); }
-    }
-
     /* Header overlay */
     .header {
       position: fixed;
       top: 0;
       left: 0;
       right: 0;
-      z-index: 1000;
+      z-index: 10;
       display: flex;
       align-items: center;
       justify-content: space-between;
@@ -140,7 +131,7 @@
       position: fixed;
       bottom: max(24px, env(safe-area-inset-bottom));
       left: 16px;
-      z-index: 1000;
+      z-index: 10;
       appearance: none;
       border: none;
       width: 44px;
@@ -157,212 +148,131 @@
 
     .locate-btn svg { width: 20px; height: 20px; }
 
-    /* Custom markers */
-    .marker-pin {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-family: -apple-system, system-ui, sans-serif;
-      font-size: 11px;
-      font-weight: 700;
-      color: #fff;
-      padding: 4px 8px;
-      border-radius: 12px;
-      white-space: nowrap;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.3);
-      position: relative;
-      cursor: pointer;
-    }
+    /* InfoWindow custom content */
+    .iw-content { padding: 2px 0; font-family: -apple-system, system-ui, sans-serif; }
 
-    .marker-pin::after {
-      content: '';
-      position: absolute;
-      bottom: -6px;
-      left: 50%;
-      transform: translateX(-50%);
-      width: 0;
-      height: 0;
-      border-left: 5px solid transparent;
-      border-right: 5px solid transparent;
-    }
-
-    .marker-pin.green { background: var(--system-green); }
-    .marker-pin.green::after { border-top: 6px solid var(--system-green); }
-    .marker-pin.orange { background: var(--system-orange); }
-    .marker-pin.orange::after { border-top: 6px solid var(--system-orange); }
-    .marker-pin.red { background: var(--system-red); }
-    .marker-pin.red::after { border-top: 6px solid var(--system-red); }
-    .marker-pin.gray { background: var(--text-tertiary); }
-    .marker-pin.gray::after { border-top: 6px solid var(--text-tertiary); }
-
-    /* User location dot */
-    .user-dot {
-      width: 16px;
-      height: 16px;
-      border-radius: 50%;
-      background: var(--system-blue);
-      border: 3px solid #fff;
-      box-shadow: 0 0 0 6px rgba(0,122,255,0.2), 0 2px 8px rgba(0,0,0,0.3);
-    }
-
-    @keyframes pulse {
-      0%, 100% { box-shadow: 0 0 0 6px rgba(0,122,255,0.2), 0 2px 8px rgba(0,0,0,0.3); }
-      50% { box-shadow: 0 0 0 12px rgba(0,122,255,0.1), 0 2px 8px rgba(0,0,0,0.3); }
-    }
-
-    .user-dot { animation: pulse 2s ease-in-out infinite; }
-
-    /* Leaflet popup custom */
-    .leaflet-popup-content-wrapper {
-      border-radius: 16px !important;
-      padding: 0 !important;
-      box-shadow: 0 4px 20px rgba(0,0,0,0.15) !important;
-      background: var(--card-bg) !important;
-    }
-
-    .leaflet-popup-content {
-      margin: 0 !important;
-      width: 260px !important;
-      font-family: -apple-system, system-ui, sans-serif !important;
-    }
-
-    .leaflet-popup-tip {
-      background: var(--card-bg) !important;
-    }
-
-    .leaflet-popup-close-button {
-      color: var(--text-tertiary) !important;
-      font-size: 20px !important;
-      top: 8px !important;
-      right: 10px !important;
-    }
-
-    /* Popup content */
-    .popup-content { padding: 14px 16px; }
-
-    .popup-name-row {
+    .iw-name-row {
       display: flex;
       align-items: center;
       gap: 6px;
       margin-bottom: 2px;
     }
 
-    .popup-name {
+    .iw-name {
       font-size: 15px;
       font-weight: 650;
       letter-spacing: -0.2px;
-      color: var(--text-primary);
+      color: #1C1C1E;
     }
 
-    .popup-dot {
+    .iw-dot {
       width: 7px;
       height: 7px;
       border-radius: 50%;
       flex-shrink: 0;
     }
 
-    .popup-dot.green { background: var(--system-green); }
-    .popup-dot.orange { background: var(--system-orange); }
-    .popup-dot.red { background: var(--system-red); }
-    .popup-dot.gray { background: var(--text-tertiary); }
+    .iw-dot.green { background: #34C759; }
+    .iw-dot.orange { background: #FF9500; }
+    .iw-dot.red { background: #FF3B30; }
+    .iw-dot.gray { background: #AEAEB2; }
 
-    .popup-company {
+    .iw-company {
       font-size: 12px;
-      color: var(--text-secondary);
+      color: #8E8E93;
       margin-bottom: 8px;
     }
 
-    .popup-litros-row {
+    .iw-litros-row {
       display: flex;
       align-items: baseline;
       gap: 4px;
       margin-bottom: 8px;
     }
 
-    .popup-litros {
+    .iw-litros {
       font-size: 22px;
       font-weight: 700;
       letter-spacing: -0.5px;
       font-variant-numeric: tabular-nums;
-      color: var(--text-primary);
+      color: #1C1C1E;
     }
 
-    .popup-litros.empty {
-      color: var(--text-tertiary);
+    .iw-litros.empty {
+      color: #AEAEB2;
       font-size: 18px;
     }
 
-    .popup-unit {
+    .iw-unit {
       font-size: 13px;
-      color: var(--text-secondary);
+      color: #8E8E93;
       font-weight: 500;
     }
 
-    .popup-bar {
+    .iw-bar {
       display: flex;
       align-items: center;
       gap: 8px;
       margin-bottom: 10px;
     }
 
-    .popup-bar-track {
+    .iw-bar-track {
       flex: 1;
       height: 4px;
       border-radius: 3px;
-      background: color-mix(in srgb, var(--text-tertiary) 20%, transparent);
+      background: rgba(174,174,178,0.2);
       overflow: hidden;
     }
 
-    .popup-bar-fill {
+    .iw-bar-fill {
       height: 100%;
       border-radius: 3px;
     }
 
-    .popup-bar-fill.green { background: linear-gradient(90deg, #86EFAC, #22C55E); }
-    .popup-bar-fill.orange { background: linear-gradient(90deg, #FDE68A, #F59E0B); }
-    .popup-bar-fill.red { background: linear-gradient(90deg, #FECACA, #EF4444); }
+    .iw-bar-fill.green { background: linear-gradient(90deg, #86EFAC, #22C55E); }
+    .iw-bar-fill.orange { background: linear-gradient(90deg, #FDE68A, #F59E0B); }
+    .iw-bar-fill.red { background: linear-gradient(90deg, #FECACA, #EF4444); }
 
-    .popup-bar-pct {
+    .iw-bar-pct {
       font-size: 11px;
       font-weight: 600;
-      color: var(--text-secondary);
+      color: #8E8E93;
       min-width: 28px;
       text-align: right;
     }
 
-    .popup-bottom {
+    .iw-bottom {
       display: flex;
       align-items: center;
       gap: 8px;
     }
 
-    .popup-cta {
+    .iw-cta {
       display: inline-flex;
       align-items: center;
       gap: 5px;
-      color: var(--system-blue);
+      color: #007AFF;
       font-size: 13px;
       font-weight: 600;
-      background: color-mix(in srgb, var(--system-blue) 8%, transparent);
+      background: rgba(0,122,255,0.08);
       padding: 6px 12px;
       border-radius: 10px;
       text-decoration: none;
-      cursor: pointer;
     }
 
-    .popup-cta svg { width: 13px; height: 13px; }
+    .iw-cta svg { width: 13px; height: 13px; }
 
-    .popup-dist {
+    .iw-dist {
       font-size: 13px;
       font-weight: 600;
-      color: var(--text-secondary);
+      color: #8E8E93;
     }
 
     /* Loading overlay */
     .loading-overlay {
       position: fixed;
       inset: 0;
-      z-index: 2000;
+      z-index: 20;
       display: flex;
       align-items: center;
       justify-content: center;
@@ -386,17 +296,8 @@
 
     .loading-overlay.hidden { display: none; }
 
-    /* Hide Leaflet attribution on small screens */
-    .leaflet-control-attribution {
-      font-size: 9px !important;
-      max-width: 200px;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
-
-    /* Disable zoom control (pinch zoom is enough on mobile) */
-    .leaflet-control-zoom { display: none; }
+    /* Clean up Google Maps UI */
+    .gm-style-cc { display: none !important; }
   </style>
 </head>
 <body>
@@ -431,6 +332,15 @@
     Cargando estaciones...
   </div>
 
+  <script>
+    // Google Maps callback
+    function initMap() {
+      window._mapReady = true;
+      if (window._pendingLoad) window._pendingLoad();
+    }
+  </script>
+  <script async src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCeQumrwhLuL4n8PTcFrMuq5tt4ipwUu_s&callback=initMap"></script>
+
   <script type="module">
     import { STATIONS } from '../shared/stations.js';
     import { fetchAllStations, getDistances } from '../shared/fetchers.js';
@@ -443,10 +353,17 @@
     const DEFAULT_LAT = -17.7833;
     const DEFAULT_LON = -63.1821;
 
+    const COLOR_HEX = {
+      green: '#34C759',
+      orange: '#FF9500',
+      red: '#FF3B30',
+      gray: '#AEAEB2',
+    };
+
     let map;
-    let userLocation = null;
     let userMarker = null;
     let stationMarkers = [];
+    let openInfoWindow = null;
 
     /* ── Helpers ─────────────────────────── */
 
@@ -488,91 +405,92 @@
       });
     }
 
-    /* ── Map init ────────────────────────── */
+    /* ── Marker SVG ──────────────────────── */
 
-    function initMap() {
-      map = L.map('map', {
-        zoomControl: false,
-        attributionControl: true,
-      }).setView([DEFAULT_LAT, DEFAULT_LON], 13);
-
-      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        attribution: '&copy; OpenStreetMap',
-        maxZoom: 19,
-      }).addTo(map);
-
-      // Fix map size after header renders
-      setTimeout(() => map.invalidateSize(), 100);
+    function createMarkerSvg(label, bgColor) {
+      const textLen = label.length;
+      const width = Math.max(32, textLen * 8 + 16);
+      const svg = `
+        <svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="38" viewBox="0 ${0} ${width} 38">
+          <rect x="0" y="0" width="${width}" height="28" rx="14" fill="${bgColor}"/>
+          <polygon points="${width/2 - 5},28 ${width/2 + 5},28 ${width/2},36" fill="${bgColor}"/>
+          <text x="${width/2}" y="18" text-anchor="middle" fill="white" font-family="-apple-system,system-ui,sans-serif" font-size="12" font-weight="700">${label}</text>
+        </svg>`;
+      return 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent(svg);
     }
 
-    /* ── Markers ─────────────────────────── */
+    /* ── InfoWindow HTML ─────────────────── */
 
-    function createStationMarker(station, colorClass, litrosShort) {
-      const icon = L.divIcon({
-        className: '',
-        html: `<div class="marker-pin ${colorClass}">${litrosShort}</div>`,
-        iconSize: [0, 0],
-        iconAnchor: [0, 6],
-        popupAnchor: [0, -12],
-      });
-
-      return L.marker([station.lat, station.lon], { icon });
-    }
-
-    function buildPopupHtml(station, colorClass, litros, pct, distKm, waze) {
+    function buildInfoWindowHtml(station, colorClass, litros, pct, distKm, waze) {
       const available = litros > 0;
       const pctRound = Math.round(pct * 100);
 
       const barFill = available
-        ? `<div class="popup-bar-fill ${colorClass}" style="width:${Math.max(pct * 100, 5)}%"></div>`
+        ? `<div class="iw-bar-fill ${colorClass}" style="width:${Math.max(pct * 100, 5)}%"></div>`
         : '';
 
       const distHtml = distKm != null
-        ? `<span class="popup-dist">${formatDistance(distKm)}</span>`
+        ? `<span class="iw-dist">${formatDistance(distKm)}</span>`
         : '';
 
       const ctaHtml = waze
-        ? `<a class="popup-cta" href="${waze}" target="_blank" onclick="event.stopPropagation()">
+        ? `<a class="iw-cta" href="${waze}" target="_blank">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="3 11 22 2 13 21 11 13 3 11"></polygon></svg>
             Navegar
           </a>`
         : '';
 
-      return `<div class="popup-content">
-        <div class="popup-name-row">
-          <span class="popup-name">${station.name}</span>
-          <div class="popup-dot ${colorClass}"></div>
+      return `<div class="iw-content">
+        <div class="iw-name-row">
+          <span class="iw-name">${station.name}</span>
+          <div class="iw-dot ${colorClass}"></div>
         </div>
-        <div class="popup-company">${station.company}</div>
-        <div class="popup-litros-row">
-          <span class="popup-litros${available ? '' : ' empty'}">${available ? formatNumber(litros) : '\u2014'}</span>
-          ${available ? '<span class="popup-unit">litros</span>' : ''}
+        <div class="iw-company">${station.company}</div>
+        <div class="iw-litros-row">
+          <span class="iw-litros${available ? '' : ' empty'}">${available ? formatNumber(litros) : '\u2014'}</span>
+          ${available ? '<span class="iw-unit">litros</span>' : ''}
         </div>
-        <div class="popup-bar">
-          <div class="popup-bar-track">${barFill}</div>
-          <span class="popup-bar-pct">${pctRound}%</span>
+        <div class="iw-bar">
+          <div class="iw-bar-track">${barFill}</div>
+          <span class="iw-bar-pct">${pctRound}%</span>
         </div>
-        <div class="popup-bottom">
+        <div class="iw-bottom">
           ${ctaHtml}
           ${distHtml}
         </div>
       </div>`;
     }
 
-    function setUserMarker(lat, lon) {
-      if (userMarker) {
-        userMarker.setLatLng([lat, lon]);
-        return;
-      }
+    /* ── Map setup ───────────────────────── */
 
-      const icon = L.divIcon({
-        className: '',
-        html: '<div class="user-dot"></div>',
-        iconSize: [16, 16],
-        iconAnchor: [8, 8],
+    function setupMap() {
+      const isDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+
+      map = new google.maps.Map(document.getElementById('map'), {
+        center: { lat: DEFAULT_LAT, lng: DEFAULT_LON },
+        zoom: 13,
+        disableDefaultUI: true,
+        zoomControl: false,
+        mapTypeControl: false,
+        streetViewControl: false,
+        fullscreenControl: false,
+        gestureHandling: 'greedy',
+        mapId: isDark ? 'DEMO_MAP_ID' : undefined,
+        styles: isDark ? [
+          { elementType: 'geometry', stylers: [{ color: '#242f3e' }] },
+          { elementType: 'labels.text.stroke', stylers: [{ color: '#242f3e' }] },
+          { elementType: 'labels.text.fill', stylers: [{ color: '#746855' }] },
+          { featureType: 'road', elementType: 'geometry', stylers: [{ color: '#38414e' }] },
+          { featureType: 'road', elementType: 'geometry.stroke', stylers: [{ color: '#212a37' }] },
+          { featureType: 'road', elementType: 'labels.text.fill', stylers: [{ color: '#9ca5b3' }] },
+          { featureType: 'water', elementType: 'geometry', stylers: [{ color: '#17263c' }] },
+          { featureType: 'poi', elementType: 'labels', stylers: [{ visibility: 'off' }] },
+          { featureType: 'transit', stylers: [{ visibility: 'off' }] },
+        ] : [
+          { featureType: 'poi', elementType: 'labels', stylers: [{ visibility: 'off' }] },
+          { featureType: 'transit', stylers: [{ visibility: 'off' }] },
+        ],
       });
-
-      userMarker = L.marker([lat, lon], { icon, zIndexOffset: 1000 }).addTo(map);
     }
 
     /* ── Data loading ────────────────────── */
@@ -587,17 +505,10 @@
           fetchAllStations(STATIONS),
         ]);
 
-        userLocation = location;
-
-        // Build waze map
         const wazeMap = {};
-        for (const s of STATIONS) {
-          wazeMap[s.name] = s.waze;
-        }
-
-        // Build coord map
         const coordMap = {};
         for (const s of STATIONS) {
+          wazeMap[s.name] = s.waze;
           coordMap[s.name] = { lat: s.lat, lon: s.lon };
         }
 
@@ -609,7 +520,6 @@
           distKm: null,
         }));
 
-        // Get distances
         const refLat = location ? location.lat : DEFAULT_LAT;
         const refLon = location ? location.lon : DEFAULT_LON;
         const withDist = await getDistances(refLat, refLon, results);
@@ -623,37 +533,80 @@
         const maxLitros = Math.max(...results.map((r) => r.litros), 1);
 
         // Clear old markers
-        for (const m of stationMarkers) {
-          map.removeLayer(m);
-        }
+        for (const m of stationMarkers) m.setMap(null);
         stationMarkers = [];
+        if (openInfoWindow) openInfoWindow.close();
+
+        // Bounds
+        const bounds = new google.maps.LatLngBounds();
 
         // Add station markers
-        const bounds = [];
         for (const r of results) {
           if (r.lat == null || r.lon == null) continue;
 
           const colorClass = getColorClass(r.litros, maxLitros);
           const litrosShort = formatLitrosShort(r.litros);
           const pct = r.litros > 0 ? r.litros / maxLitros : 0;
+          const bgColor = COLOR_HEX[colorClass];
 
-          const marker = createStationMarker(r, colorClass, litrosShort);
-          const popupHtml = buildPopupHtml(r, colorClass, r.litros, pct, r.distKm, r.waze);
-          marker.bindPopup(popupHtml, { maxWidth: 280, minWidth: 260 });
-          marker.addTo(map);
+          const marker = new google.maps.Marker({
+            position: { lat: r.lat, lng: r.lon },
+            map,
+            icon: {
+              url: createMarkerSvg(litrosShort, bgColor),
+              scaledSize: new google.maps.Size(
+                Math.max(32, litrosShort.length * 8 + 16), 38
+              ),
+              anchor: new google.maps.Point(
+                Math.max(32, litrosShort.length * 8 + 16) / 2, 36
+              ),
+            },
+            title: r.name,
+            optimized: false,
+          });
+
+          const infoHtml = buildInfoWindowHtml(r, colorClass, r.litros, pct, r.distKm, r.waze);
+          const infoWindow = new google.maps.InfoWindow({
+            content: infoHtml,
+            maxWidth: 280,
+          });
+
+          marker.addListener('click', () => {
+            if (openInfoWindow) openInfoWindow.close();
+            infoWindow.open(map, marker);
+            openInfoWindow = infoWindow;
+          });
+
           stationMarkers.push(marker);
-          bounds.push([r.lat, r.lon]);
+          bounds.extend({ lat: r.lat, lng: r.lon });
         }
 
         // User location
         if (location) {
-          setUserMarker(location.lat, location.lon);
-          bounds.push([location.lat, location.lon]);
+          if (userMarker) {
+            userMarker.setPosition({ lat: location.lat, lng: location.lon });
+          } else {
+            userMarker = new google.maps.Marker({
+              position: { lat: location.lat, lng: location.lon },
+              map,
+              icon: {
+                path: google.maps.SymbolPath.CIRCLE,
+                scale: 8,
+                fillColor: '#007AFF',
+                fillOpacity: 1,
+                strokeColor: '#FFFFFF',
+                strokeWeight: 3,
+              },
+              zIndex: 1000,
+              title: 'Tu ubicación',
+            });
+          }
+          bounds.extend({ lat: location.lat, lng: location.lon });
         }
 
         // Fit bounds
-        if (bounds.length > 0) {
-          map.fitBounds(bounds, { padding: [50, 50], maxZoom: 14 });
+        if (!bounds.isEmpty()) {
+          map.fitBounds(bounds, { top: 80, bottom: 40, left: 20, right: 20 });
         }
 
         // Update pill
@@ -675,9 +628,11 @@
     locateBtn.addEventListener('click', async () => {
       const loc = await getUserLocation();
       if (loc) {
-        userLocation = loc;
-        setUserMarker(loc.lat, loc.lon);
-        map.setView([loc.lat, loc.lon], 14, { animate: true });
+        if (userMarker) {
+          userMarker.setPosition({ lat: loc.lat, lng: loc.lon });
+        }
+        map.panTo({ lat: loc.lat, lng: loc.lon });
+        map.setZoom(14);
       }
     });
 
@@ -691,8 +646,16 @@
 
     /* ── Init ────────────────────────────── */
 
-    initMap();
-    loadData();
+    function start() {
+      setupMap();
+      loadData();
+    }
+
+    if (window._mapReady) {
+      start();
+    } else {
+      window._pendingLoad = start;
+    }
 
     if ('serviceWorker' in navigator) {
       navigator.serviceWorker.register('sw.js').catch((err) => {

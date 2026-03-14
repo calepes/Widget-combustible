@@ -1,4 +1,4 @@
-const CACHE_NAME = 'combustible-map-v1';
+const CACHE_NAME = 'combustible-map-v2';
 
 const APP_SHELL = [
   './',
@@ -33,17 +33,20 @@ self.addEventListener('activate', (event) => {
   self.clients.claim();
 });
 
-/* ── Fetch: network-first for data/CDN, cache-first for local assets ── */
+/* ── Fetch: network-first for external, cache-first for local ── */
 self.addEventListener('fetch', (event) => {
   const url = new URL(event.request.url);
 
-  // Data requests + CDN (Leaflet, proxy, OSRM, tile servers) — network first
+  // External requests (Google Maps, proxy, OSRM, tiles) — network first
   if (url.hostname !== location.hostname) {
     event.respondWith(
       fetch(event.request)
         .then((response) => {
-          const clone = response.clone();
-          caches.open(CACHE_NAME).then((cache) => cache.put(event.request, clone));
+          // Only cache successful, non-opaque responses
+          if (response.status === 200) {
+            const clone = response.clone();
+            caches.open(CACHE_NAME).then((cache) => cache.put(event.request, clone));
+          }
           return response;
         })
         .catch(() => caches.match(event.request))
